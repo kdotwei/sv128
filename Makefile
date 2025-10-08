@@ -1,6 +1,9 @@
 CXX = g++
 CXXFLAGS = -std=c++11 -Wall
 
+# Installation prefix - can be overridden with: make install PREFIX=/custom/path
+PREFIX ?= /usr/local
+
 # Object files
 sv128.o: sv128.cpp sv128.h sv_logger.h
 	$(CXX) $(CXXFLAGS) -c sv128.cpp
@@ -27,4 +30,16 @@ all: test_app
 clean:
 	rm -f *.o *.a test_app
 
-.PHONY: all clean
+# Install library and headers
+install: libsv128.a
+	mkdir -p $(PREFIX)/lib
+	mkdir -p $(PREFIX)/include/sv128
+	cp libsv128.a $(PREFIX)/lib/
+	cp sv128.h sv_logger.h $(PREFIX)/include/sv128/
+
+# Uninstall library and headers
+uninstall:
+	rm -f $(PREFIX)/lib/libsv128.a
+	rm -rf $(PREFIX)/include/sv128
+
+.PHONY: all clean install uninstall
