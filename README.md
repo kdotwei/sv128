@@ -72,7 +72,7 @@ This demonstrates the library's features and shows the performance logger output
 
 ## API Reference
 
-This section provides a detailed overview of all available functions in the sv128 library.
+This section provides a brief overview of the sv128 library functions. For a detailed description of each function, please see [API_DOCS.md](API_DOCS.md).
 
 ### Data Types
 
