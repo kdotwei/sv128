@@ -53,7 +53,7 @@ To use the sv128 library in your own projects:
 1. Include the headers:
    ```cpp
    #include <sv128/sv128.h>
-   #include <sv128/sv_logger.h>
+   #include <sv128/sv_logger.h> // If you need
    ```
 
 2. When compiling your project, link against the library and specify the include path.
