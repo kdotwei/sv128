@@ -64,37 +64,43 @@ sv_logger_print_stats();  // Display performance summary
 
 ### sv_load_int
 ```cpp
-sv_int4 sv_load_int(const int* mem_addr);
+sv_int4 sv_load_int(sv_int4 passthru, const int* mem_addr, sv_mask mask);
 ```
-**Description:** Loads VECTOR_WIDTH consecutive integers from memory into a vector register.
+**Description:** Loads VECTOR_WIDTH consecutive integers from memory into a vector register. The operation is only performed on lanes where the mask is true. For lanes where the mask is false, the result comes from the passthru vector.
 
 **Parameters:**
+- `passthru`: The vector to use for lanes that are masked off
 - `mem_addr`: Pointer to the memory location to load from
+- `mask`: Mask controlling which lanes to operate on
 
-**Return Value:** Vector containing the loaded integer values
+**Return Value:** Vector containing the loaded integer values for active lanes and passthru values for inactive lanes
 
 **Example:**
 ```cpp
 int array[4] = {1, 2, 3, 4};
-sv_int4 vec = sv_load_int(array);
+sv_int4 passthru = sv_set_int(10, 20, 30, 40);
+sv_mask mask = sv_init_ones(2);  // [T, T, F, F]
+sv_int4 vec = sv_load_int(passthru, array, mask);  // [1, 2, 30, 40]
 ```
 
 ### sv_store_int
 ```cpp
-void sv_store_int(int* mem_addr, sv_int4 a);
+void sv_store_int(int* mem_addr, sv_int4 a, sv_mask mask);
 ```
-**Description:** Stores all lanes of a vector register to consecutive memory locations.
+**Description:** Stores vector register lanes to consecutive memory locations. The operation is only performed on lanes where the mask is true. Memory locations corresponding to inactive lanes remain unchanged.
 
 **Parameters:**
 - `mem_addr`: Pointer to the memory location to store to
 - `a`: Vector register to store
+- `mask`: Mask controlling which lanes to operate on
 
 **Return Value:** None
 
 **Example:**
 ```cpp
-int result[4];
-sv_store_int(result, vec);
+int result[4] = {10, 20, 30, 40};  // Initial values
+sv_mask mask = sv_init_ones(2);    // [T, T, F, F]
+sv_store_int(result, vec, mask);   // result becomes [1, 2, 30, 40]
 ```
 
 ### sv_set_int
@@ -115,53 +121,63 @@ sv_int4 vec = sv_set_int(10, 20, 30, 40);
 
 ### sv_set1_int
 ```cpp
-sv_int4 sv_set1_int(int val);
+sv_int4 sv_set1_int(sv_int4 passthru, int val, sv_mask mask);
 ```
-**Description:** Creates a vector with all lanes set to the same value.
+**Description:** Creates a vector with specified lanes set to the same value. The operation is only performed on lanes where the mask is true. For lanes where the mask is false, the result comes from the passthru vector.
 
 **Parameters:**
-- `val`: Value to broadcast to all lanes
+- `passthru`: The vector to use for lanes that are masked off
+- `val`: Value to broadcast to active lanes
+- `mask`: Mask controlling which lanes to operate on
 
-**Return Value:** Vector with all lanes set to the specified value
+**Return Value:** Vector with active lanes set to the specified value and inactive lanes from passthru
 
 **Example:**
 ```cpp
-sv_int4 vec = sv_set1_int(42);  // [42, 42, 42, 42]
+sv_int4 passthru = sv_set_int(1, 2, 3, 4);
+sv_mask mask = sv_init_ones(2);  // [T, T, F, F]
+sv_int4 vec = sv_set1_int(passthru, 42, mask);  // [42, 42, 3, 4]
 ```
 
 ### sv_load_float
 ```cpp
-sv_float4 sv_load_float(const float* mem_addr);
+sv_float4 sv_load_float(sv_float4 passthru, const float* mem_addr, sv_mask mask);
 ```
-**Description:** Loads VECTOR_WIDTH consecutive floats from memory into a vector register.
+**Description:** Loads VECTOR_WIDTH consecutive floats from memory into a vector register. The operation is only performed on lanes where the mask is true. For lanes where the mask is false, the result comes from the passthru vector.
 
 **Parameters:**
+- `passthru`: The vector to use for lanes that are masked off
 - `mem_addr`: Pointer to the memory location to load from
+- `mask`: Mask controlling which lanes to operate on
 
-**Return Value:** Vector containing the loaded float values
+**Return Value:** Vector containing the loaded float values for active lanes and passthru values for inactive lanes
 
 **Example:**
 ```cpp
 float array[4] = {1.5f, 2.5f, 3.5f, 4.5f};
-sv_float4 vec = sv_load_float(array);
+sv_float4 passthru = sv_set_float(10.0f, 20.0f, 30.0f, 40.0f);
+sv_mask mask = sv_init_ones(3);  // [T, T, T, F]
+sv_float4 vec = sv_load_float(passthru, array, mask);  // [1.5, 2.5, 3.5, 40.0]
 ```
 
 ### sv_store_float
 ```cpp
-void sv_store_float(float* mem_addr, sv_float4 a);
+void sv_store_float(float* mem_addr, sv_float4 a, sv_mask mask);
 ```
-**Description:** Stores all lanes of a float vector register to consecutive memory locations.
+**Description:** Stores float vector register lanes to consecutive memory locations. The operation is only performed on lanes where the mask is true. Memory locations corresponding to inactive lanes remain unchanged.
 
 **Parameters:**
 - `mem_addr`: Pointer to the memory location to store to
 - `a`: Vector register to store
+- `mask`: Mask controlling which lanes to operate on
 
 **Return Value:** None
 
 **Example:**
 ```cpp
-float result[4];
-sv_store_float(result, vec);
+float result[4] = {10.0f, 20.0f, 30.0f, 40.0f};  // Initial values
+sv_mask mask = sv_init_ones(2);                   // [T, T, F, F]
+sv_store_float(result, vec, mask);                // result becomes [1.5, 2.5, 30.0, 40.0]
 ```
 
 ### sv_set_float
@@ -182,247 +198,349 @@ sv_float4 vec = sv_set_float(1.0f, 2.0f, 3.0f, 4.0f);
 
 ### sv_set1_float
 ```cpp
-sv_float4 sv_set1_float(float val);
+sv_float4 sv_set1_float(sv_float4 passthru, float val, sv_mask mask);
 ```
-**Description:** Creates a float vector with all lanes set to the same value.
+**Description:** Creates a float vector with specified lanes set to the same value. The operation is only performed on lanes where the mask is true. For lanes where the mask is false, the result comes from the passthru vector.
 
 **Parameters:**
-- `val`: Value to broadcast to all lanes
+- `passthru`: The vector to use for lanes that are masked off
+- `val`: Value to broadcast to active lanes
+- `mask`: Mask controlling which lanes to operate on
 
-**Return Value:** Vector with all lanes set to the specified value
+**Return Value:** Vector with active lanes set to the specified value and inactive lanes from passthru
 
 **Example:**
 ```cpp
-sv_float4 vec = sv_set1_float(3.14f);  // [3.14, 3.14, 3.14, 3.14]
+sv_float4 passthru = sv_set_float(1.0f, 2.0f, 3.0f, 4.0f);
+sv_mask mask = sv_init_ones(3);  // [T, T, T, F]
+sv_float4 vec = sv_set1_float(passthru, 3.14f, mask);  // [3.14, 3.14, 3.14, 4.0]
 ```
 
 ## Vector Arithmetic
 
 ### sv_int_add
 ```cpp
-sv_int4 sv_int_add(sv_int4 a, sv_int4 b);
+sv_int4 sv_int_add(sv_int4 a, sv_int4 b, sv_mask mask);
 ```
-**Description:** Performs element-wise addition of two integer vectors.
+**Description:** Performs element-wise addition of two integer vectors. The operation is only performed on lanes where the mask is true. For lanes where the mask is false, the result comes from the first operand (a).
 
 **Parameters:**
-- `a`: First vector operand
+- `a`: First vector operand (also provides values for masked-off lanes)
 - `b`: Second vector operand
+- `mask`: Mask controlling which lanes to operate on
 
-**Return Value:** Vector containing the element-wise sum
+**Return Value:** Vector containing the element-wise sum for active lanes and values from 'a' for inactive lanes
 
 **Example:**
 ```cpp
 sv_int4 a = sv_set_int(1, 2, 3, 4);
 sv_int4 b = sv_set_int(5, 6, 7, 8);
-sv_int4 result = sv_int_add(a, b);  // [6, 8, 10, 12]
+sv_mask mask = sv_init_ones(2);        // [T, T, F, F]
+sv_int4 result = sv_int_add(a, b, mask);  // [6, 8, 3, 4]
 ```
 
 ### sv_int_sub
 ```cpp
-sv_int4 sv_int_sub(sv_int4 a, sv_int4 b);
+sv_int4 sv_int_sub(sv_int4 a, sv_int4 b, sv_mask mask);
 ```
-**Description:** Performs element-wise subtraction of two integer vectors.
+**Description:** Performs element-wise subtraction of two integer vectors. The operation is only performed on lanes where the mask is true. For lanes where the mask is false, the result comes from the first operand (a).
 
 **Parameters:**
-- `a`: First vector operand
+- `a`: First vector operand (also provides values for masked-off lanes)
 - `b`: Second vector operand
+- `mask`: Mask controlling which lanes to operate on
 
-**Return Value:** Vector containing the element-wise difference
+**Return Value:** Vector containing the element-wise difference for active lanes and values from 'a' for inactive lanes
 
 **Example:**
 ```cpp
-sv_int4 result = sv_int_sub(b, a);  // [4, 4, 4, 4]
+sv_int4 result = sv_int_sub(b, a, mask);  // [4, 4, 7, 8]
 ```
 
 ### sv_int_mul
 ```cpp
-sv_int4 sv_int_mul(sv_int4 a, sv_int4 b);
+sv_int4 sv_int_mul(sv_int4 a, sv_int4 b, sv_mask mask);
 ```
-**Description:** Performs element-wise multiplication of two integer vectors.
+**Description:** Performs element-wise multiplication of two integer vectors. The operation is only performed on lanes where the mask is true. For lanes where the mask is false, the result comes from the first operand (a).
 
 **Parameters:**
-- `a`: First vector operand
+- `a`: First vector operand (also provides values for masked-off lanes)
 - `b`: Second vector operand
+- `mask`: Mask controlling which lanes to operate on
 
-**Return Value:** Vector containing the element-wise product
+**Return Value:** Vector containing the element-wise product for active lanes and values from 'a' for inactive lanes
 
 **Example:**
 ```cpp
-sv_int4 result = sv_int_mul(a, b);  // [5, 12, 21, 32]
+sv_int4 result = sv_int_mul(a, b, mask);  // [5, 12, 3, 4]
 ```
 
 ### sv_int_div
 ```cpp
-sv_int4 sv_int_div(sv_int4 a, sv_int4 b);
+sv_int4 sv_int_div(sv_int4 a, sv_int4 b, sv_mask mask);
 ```
-**Description:** Performs element-wise division of two integer vectors.
+**Description:** Performs element-wise division of two integer vectors. The operation is only performed on lanes where the mask is true. For lanes where the mask is false, the result comes from the first operand (a).
 
 **Parameters:**
-- `a`: Dividend vector
+- `a`: Dividend vector (also provides values for masked-off lanes)
 - `b`: Divisor vector
+- `mask`: Mask controlling which lanes to operate on
 
-**Return Value:** Vector containing the element-wise quotient
+**Return Value:** Vector containing the element-wise quotient for active lanes and values from 'a' for inactive lanes
 
 **Example:**
 ```cpp
-sv_int4 result = sv_int_div(b, a);  // [5, 3, 2, 2]
+sv_int4 result = sv_int_div(b, a, mask);  // [5, 3, 7, 8]
 ```
 
 ### sv_int_abs
 ```cpp
-sv_int4 sv_int_abs(sv_int4 a);
+sv_int4 sv_int_abs(sv_int4 a, sv_mask mask);
 ```
-**Description:** Computes the absolute value of each element in an integer vector.
+**Description:** Computes the absolute value of each element in an integer vector. The operation is only performed on lanes where the mask is true. For lanes where the mask is false, the result comes from the input vector (a).
 
 **Parameters:**
-- `a`: Input vector
+- `a`: Input vector (also provides values for masked-off lanes)
+- `mask`: Mask controlling which lanes to operate on
 
-**Return Value:** Vector containing the absolute values
+**Return Value:** Vector containing the absolute values for active lanes and original values from 'a' for inactive lanes
 
 **Example:**
 ```cpp
 sv_int4 negative = sv_set_int(-1, -2, 3, -4);
-sv_int4 result = sv_int_abs(negative);  // [1, 2, 3, 4]
+sv_mask mask = sv_init_ones(3);  // [T, T, T, F]
+sv_int4 result = sv_int_abs(negative, mask);  // [1, 2, 3, -4]
 ```
 
 ### sv_float_add
 ```cpp
-sv_float4 sv_float_add(sv_float4 a, sv_float4 b);
+sv_float4 sv_float_add(sv_float4 a, sv_float4 b, sv_mask mask);
 ```
-**Description:** Performs element-wise addition of two float vectors.
+**Description:** Performs element-wise addition of two float vectors. The operation is only performed on lanes where the mask is true. For lanes where the mask is false, the result comes from the first operand (a).
 
 **Parameters:**
-- `a`: First vector operand
+- `a`: First vector operand (also provides values for masked-off lanes)
 - `b`: Second vector operand
+- `mask`: Mask controlling which lanes to operate on
 
-**Return Value:** Vector containing the element-wise sum
+**Return Value:** Vector containing the element-wise sum for active lanes and values from 'a' for inactive lanes
 
 **Example:**
 ```cpp
 sv_float4 a = sv_set_float(1.5f, 2.5f, 3.5f, 4.5f);
 sv_float4 b = sv_set_float(0.5f, 1.0f, 2.0f, 3.0f);
-sv_float4 result = sv_float_add(a, b);  // [2.0, 3.5, 5.5, 7.5]
+sv_mask mask = sv_init_ones(3);  // [T, T, T, F]
+sv_float4 result = sv_float_add(a, b, mask);  // [2.0, 3.5, 5.5, 4.5]
 ```
 
 ### sv_float_sub
 ```cpp
-sv_float4 sv_float_sub(sv_float4 a, sv_float4 b);
+sv_float4 sv_float_sub(sv_float4 a, sv_float4 b, sv_mask mask);
 ```
-**Description:** Performs element-wise subtraction of two float vectors.
+**Description:** Performs element-wise subtraction of two float vectors. The operation is only performed on lanes where the mask is true. For lanes where the mask is false, the result comes from the first operand (a).
 
 **Parameters:**
-- `a`: First vector operand
+- `a`: First vector operand (also provides values for masked-off lanes)
 - `b`: Second vector operand
+- `mask`: Mask controlling which lanes to operate on
 
-**Return Value:** Vector containing the element-wise difference
+**Return Value:** Vector containing the element-wise difference for active lanes and values from 'a' for inactive lanes
 
 **Example:**
 ```cpp
-sv_float4 result = sv_float_sub(a, b);  // [1.0, 1.5, 1.5, 1.5]
+sv_float4 result = sv_float_sub(a, b, mask);  // [1.0, 1.5, 1.5, 4.5]
 ```
 
 ### sv_float_mul
 ```cpp
-sv_float4 sv_float_mul(sv_float4 a, sv_float4 b);
+sv_float4 sv_float_mul(sv_float4 a, sv_float4 b, sv_mask mask);
 ```
-**Description:** Performs element-wise multiplication of two float vectors.
+**Description:** Performs element-wise multiplication of two float vectors. The operation is only performed on lanes where the mask is true. For lanes where the mask is false, the result comes from the first operand (a).
 
 **Parameters:**
-- `a`: First vector operand
+- `a`: First vector operand (also provides values for masked-off lanes)
 - `b`: Second vector operand
+- `mask`: Mask controlling which lanes to operate on
 
-**Return Value:** Vector containing the element-wise product
+**Return Value:** Vector containing the element-wise product for active lanes and values from 'a' for inactive lanes
 
 **Example:**
 ```cpp
-sv_float4 result = sv_float_mul(a, b);  // [0.75, 2.5, 7.0, 13.5]
+sv_float4 result = sv_float_mul(a, b, mask);  // [0.75, 2.5, 7.0, 4.5]
 ```
 
 ### sv_float_div
 ```cpp
-sv_float4 sv_float_div(sv_float4 a, sv_float4 b);
+sv_float4 sv_float_div(sv_float4 a, sv_float4 b, sv_mask mask);
 ```
-**Description:** Performs element-wise division of two float vectors.
+**Description:** Performs element-wise division of two float vectors. The operation is only performed on lanes where the mask is true. For lanes where the mask is false, the result comes from the first operand (a).
 
 **Parameters:**
-- `a`: Dividend vector
+- `a`: Dividend vector (also provides values for masked-off lanes)
 - `b`: Divisor vector
+- `mask`: Mask controlling which lanes to operate on
 
-**Return Value:** Vector containing the element-wise quotient
+**Return Value:** Vector containing the element-wise quotient for active lanes and values from 'a' for inactive lanes
 
 **Example:**
 ```cpp
-sv_float4 result = sv_float_div(a, b);  // [3.0, 2.5, 1.75, 1.5]
+sv_float4 result = sv_float_div(a, b, mask);  // [3.0, 2.5, 1.75, 4.5]
 ```
 
 ### sv_float_abs
 ```cpp
-sv_float4 sv_float_abs(sv_float4 a);
+sv_float4 sv_float_abs(sv_float4 a, sv_mask mask);
 ```
-**Description:** Computes the absolute value of each element in a float vector.
+**Description:** Computes the absolute value of each element in a float vector. The operation is only performed on lanes where the mask is true. For lanes where the mask is false, the result comes from the input vector (a).
 
 **Parameters:**
-- `a`: Input vector
+- `a`: Input vector (also provides values for masked-off lanes)
+- `mask`: Mask controlling which lanes to operate on
 
-**Return Value:** Vector containing the absolute values
+**Return Value:** Vector containing the absolute values for active lanes and original values from 'a' for inactive lanes
 
 **Example:**
 ```cpp
 sv_float4 negative = sv_set_float(-1.5f, -2.5f, 3.5f, -4.5f);
-sv_float4 result = sv_float_abs(negative);  // [1.5, 2.5, 3.5, 4.5]
+sv_mask mask = sv_init_ones(3);  // [T, T, T, F]
+sv_float4 result = sv_float_abs(negative, mask);  // [1.5, 2.5, 3.5, -4.5]
 ```
 
 ### sv_float_sqrt
 ```cpp
-sv_float4 sv_float_sqrt(sv_float4 a);
+sv_float4 sv_float_sqrt(sv_float4 a, sv_mask mask);
 ```
-**Description:** Computes the square root of each element in a float vector.
+**Description:** Computes the square root of each element in a float vector. The operation is only performed on lanes where the mask is true. For lanes where the mask is false, the result comes from the input vector (a).
 
 **Parameters:**
-- `a`: Input vector
+- `a`: Input vector (also provides values for masked-off lanes)
+- `mask`: Mask controlling which lanes to operate on
 
-**Return Value:** Vector containing the square roots
+**Return Value:** Vector containing the square roots for active lanes and original values from 'a' for inactive lanes
 
 **Example:**
 ```cpp
 sv_float4 squares = sv_set_float(1.0f, 4.0f, 9.0f, 16.0f);
-sv_float4 result = sv_float_sqrt(squares);  // [1.0, 2.0, 3.0, 4.0]
+sv_mask mask = sv_init_ones(3);  // [T, T, T, F]
+sv_float4 result = sv_float_sqrt(squares, mask);  // [1.0, 2.0, 3.0, 16.0]
 ```
 
 ## Advanced Vector Operations
 
-### sv_float_hadd
+### sv_int_min
 ```cpp
-sv_float4 sv_float_hadd(sv_float4 a);
+sv_int4 sv_int_min(sv_int4 a, sv_int4 b, sv_mask mask);
 ```
-**Description:** Performs horizontal addition on pairs of adjacent elements. Transforms [a,b,c,d] to [a+b, a+b, c+d, c+d].
+**Description:** Computes the element-wise minimum of two integer vectors. The operation is only performed on lanes where the mask is true. For lanes where the mask is false, the result comes from the first operand (a).
 
 **Parameters:**
-- `a`: Input vector
+- `a`: First vector operand (also provides values for masked-off lanes)
+- `b`: Second vector operand
+- `mask`: Mask controlling which lanes to operate on
 
-**Return Value:** Vector with horizontal sums
+**Return Value:** Vector containing the element-wise minimum for active lanes and values from 'a' for inactive lanes
+
+**Example:**
+```cpp
+sv_int4 a = sv_set_int(5, 2, 8, 1);
+sv_int4 b = sv_set_int(3, 6, 4, 9);
+sv_mask mask = sv_init_ones(3);  // [T, T, T, F]
+sv_int4 result = sv_int_min(a, b, mask);  // [3, 2, 4, 1]
+```
+
+### sv_int_max
+```cpp
+sv_int4 sv_int_max(sv_int4 a, sv_int4 b, sv_mask mask);
+```
+**Description:** Computes the element-wise maximum of two integer vectors. The operation is only performed on lanes where the mask is true. For lanes where the mask is false, the result comes from the first operand (a).
+
+**Parameters:**
+- `a`: First vector operand (also provides values for masked-off lanes)
+- `b`: Second vector operand
+- `mask`: Mask controlling which lanes to operate on
+
+**Return Value:** Vector containing the element-wise maximum for active lanes and values from 'a' for inactive lanes
+
+**Example:**
+```cpp
+sv_int4 result = sv_int_max(a, b, mask);  // [5, 6, 8, 1]
+```
+
+### sv_float_min
+```cpp
+sv_float4 sv_float_min(sv_float4 a, sv_float4 b, sv_mask mask);
+```
+**Description:** Computes the element-wise minimum of two float vectors. The operation is only performed on lanes where the mask is true. For lanes where the mask is false, the result comes from the first operand (a).
+
+**Parameters:**
+- `a`: First vector operand (also provides values for masked-off lanes)
+- `b`: Second vector operand
+- `mask`: Mask controlling which lanes to operate on
+
+**Return Value:** Vector containing the element-wise minimum for active lanes and values from 'a' for inactive lanes
+
+**Example:**
+```cpp
+sv_float4 a = sv_set_float(5.5f, 2.1f, 8.3f, 1.7f);
+sv_float4 b = sv_set_float(3.2f, 6.8f, 4.1f, 9.5f);
+sv_mask mask = sv_init_ones(3);  // [T, T, T, F]
+sv_float4 result = sv_float_min(a, b, mask);  // [3.2, 2.1, 4.1, 1.7]
+```
+
+### sv_float_max
+```cpp
+sv_float4 sv_float_max(sv_float4 a, sv_float4 b, sv_mask mask);
+```
+**Description:** Computes the element-wise maximum of two float vectors. The operation is only performed on lanes where the mask is true. For lanes where the mask is false, the result comes from the first operand (a).
+
+**Parameters:**
+- `a`: First vector operand (also provides values for masked-off lanes)
+- `b`: Second vector operand
+- `mask`: Mask controlling which lanes to operate on
+
+**Return Value:** Vector containing the element-wise maximum for active lanes and values from 'a' for inactive lanes
+
+**Example:**
+```cpp
+sv_float4 result = sv_float_max(a, b, mask);  // [5.5, 6.8, 8.3, 1.7]
+```
+
+### sv_float_hadd
+```cpp
+sv_float4 sv_float_hadd(sv_float4 a, sv_mask mask);
+```
+**Description:** Performs horizontal addition on pairs of adjacent elements. Transforms [a,b,c,d] to [a+b, a+b, c+d, c+d]. The operation is only performed on lanes where the mask is true. For lanes where the mask is false, the result comes from the input vector (a).
+
+**Parameters:**
+- `a`: Input vector (also provides values for masked-off lanes)
+- `mask`: Mask controlling which lanes to operate on
+
+**Return Value:** Vector with horizontal sums for active lanes and original values from 'a' for inactive lanes
 
 **Example:**
 ```cpp
 sv_float4 input = sv_set_float(1.0f, 2.0f, 3.0f, 4.0f);
-sv_float4 result = sv_float_hadd(input);  // [3.0, 3.0, 7.0, 7.0]
+sv_mask mask = sv_init_ones(2);  // [T, T, F, F]
+sv_float4 result = sv_float_hadd(input, mask);  // [3.0, 3.0, 3.0, 4.0]
 ```
 
 ### sv_float_interleave
 ```cpp
-sv_float4 sv_float_interleave(sv_float4 a);
+sv_float4 sv_float_interleave(sv_float4 a, sv_mask mask);
 ```
-**Description:** Interleaves elements by swapping the middle two elements. Transforms [a,b,c,d] to [a,c,b,d].
+**Description:** Interleaves elements by swapping the middle two elements. Transforms [a,b,c,d] to [a,c,b,d]. The operation is only performed on lanes where the mask is true. For lanes where the mask is false, the result comes from the input vector (a).
 
 **Parameters:**
-- `a`: Input vector
+- `a`: Input vector (also provides values for masked-off lanes)
+- `mask`: Mask controlling which lanes to operate on
 
-**Return Value:** Vector with interleaved elements
+**Return Value:** Vector with interleaved elements for active lanes and original values from 'a' for inactive lanes
 
 **Example:**
 ```cpp
 sv_float4 input = sv_set_float(1.0f, 2.0f, 3.0f, 4.0f);
-sv_float4 result = sv_float_interleave(input);  // [1.0, 3.0, 2.0, 4.0]
+sv_mask mask = sv_init_ones(4);  // [T, T, T, T]
+sv_float4 result = sv_float_interleave(input, mask);  // [1.0, 3.0, 2.0, 4.0]
 ```
 
 ## Vector Comparison
@@ -480,6 +598,42 @@ sv_mask sv_int_gt(sv_int4 a, sv_int4 b);
 sv_mask result = sv_int_gt(a, b);  // [F, T, F, F]
 ```
 
+### sv_int_le
+```cpp
+sv_mask sv_int_le(sv_int4 a, sv_int4 b);
+```
+**Description:** Performs element-wise less-than-or-equal comparison between two integer vectors.
+
+**Parameters:**
+- `a`: First vector operand
+- `b`: Second vector operand
+
+**Return Value:** Mask indicating which lanes of `a` are less than or equal to `b`
+
+**Example:**
+```cpp
+sv_int4 a = sv_set_int(1, 2, 3, 4);
+sv_int4 b = sv_set_int(1, 0, 3, 5);
+sv_mask result = sv_int_le(a, b);  // [T, F, T, T]
+```
+
+### sv_int_ge
+```cpp
+sv_mask sv_int_ge(sv_int4 a, sv_int4 b);
+```
+**Description:** Performs element-wise greater-than-or-equal comparison between two integer vectors.
+
+**Parameters:**
+- `a`: First vector operand
+- `b`: Second vector operand
+
+**Return Value:** Mask indicating which lanes of `a` are greater than or equal to `b`
+
+**Example:**
+```cpp
+sv_mask result = sv_int_ge(a, b);  // [T, T, T, F]
+```
+
 ### sv_float_eq
 ```cpp
 sv_mask sv_float_eq(sv_float4 a, sv_float4 b);
@@ -533,7 +687,58 @@ sv_mask sv_float_gt(sv_float4 a, sv_float4 b);
 sv_mask result = sv_float_gt(a, b);  // [F, T, F, F]
 ```
 
+### sv_float_le
+```cpp
+sv_mask sv_float_le(sv_float4 a, sv_float4 b);
+```
+**Description:** Performs element-wise less-than-or-equal comparison between two float vectors.
+
+**Parameters:**
+- `a`: First vector operand
+- `b`: Second vector operand
+
+**Return Value:** Mask indicating which lanes of `a` are less than or equal to `b`
+
+**Example:**
+```cpp
+sv_float4 a = sv_set_float(1.0f, 2.0f, 3.0f, 4.0f);
+sv_float4 b = sv_set_float(1.0f, 0.0f, 3.0f, 5.0f);
+sv_mask result = sv_float_le(a, b);  // [T, F, T, T]
+```
+
+### sv_float_ge
+```cpp
+sv_mask sv_float_ge(sv_float4 a, sv_float4 b);
+```
+**Description:** Performs element-wise greater-than-or-equal comparison between two float vectors.
+
+**Parameters:**
+- `a`: First vector operand
+- `b`: Second vector operand
+
+**Return Value:** Mask indicating which lanes of `a` are greater than or equal to `b`
+
+**Example:**
+```cpp
+sv_mask result = sv_float_ge(a, b);  // [T, T, T, F]
+```
+
 ## Mask Operations
+
+### sv_mask_all_true
+```cpp
+sv_mask sv_mask_all_true();
+```
+**Description:** Creates a mask with all lanes set to true.
+
+**Parameters:** None
+
+**Return Value:** Mask with all lanes set to true
+
+**Example:**
+```cpp
+sv_mask mask = sv_mask_all_true();  // [T, T, T, T]
+```
 
 ### sv_init_ones
 ```cpp
@@ -604,6 +809,44 @@ sv_mask sv_mask_and(sv_mask a, sv_mask b);
 sv_mask result = sv_mask_and(a, b);  // [T, T, F, F]
 ```
 
+### sv_mask_all
+```cpp
+bool sv_mask_all(sv_mask a);
+```
+**Description:** Checks if all lanes in a mask are true.
+
+**Parameters:**
+- `a`: Input mask
+
+**Return Value:** True if all lanes are true, false otherwise
+
+**Example:**
+```cpp
+sv_mask mask1 = sv_mask_all_true();     // [T, T, T, T]
+sv_mask mask2 = sv_init_ones(3);        // [T, T, T, F]
+bool result1 = sv_mask_all(mask1);      // true
+bool result2 = sv_mask_all(mask2);      // false
+```
+
+### sv_mask_any
+```cpp
+bool sv_mask_any(sv_mask a);
+```
+**Description:** Checks if any lane in a mask is true.
+
+**Parameters:**
+- `a`: Input mask
+
+**Return Value:** True if at least one lane is true, false otherwise
+
+**Example:**
+```cpp
+sv_mask mask1 = sv_init_ones(1);        // [T, F, F, F]
+sv_mask mask2 = sv_mask_not(sv_mask_all_true());  // [F, F, F, F]
+bool result1 = sv_mask_any(mask1);      // true
+bool result2 = sv_mask_any(mask2);      // false
+```
+
 ### sv_cntbits
 ```cpp
 int sv_cntbits(sv_mask a);
@@ -619,122 +862,6 @@ int sv_cntbits(sv_mask a);
 ```cpp
 sv_mask mask = sv_init_ones(3);      // [T, T, T, F]
 int count = sv_cntbits(mask);        // 3
-```
-
-## Masked Arithmetic
-
-### sv_int_masked_add
-```cpp
-sv_int4 sv_int_masked_add(sv_int4 a, sv_int4 b, sv_mask mask);
-```
-**Description:** Performs addition only on lanes where the mask is true. Other lanes retain their original values from vector `a`.
-
-**Parameters:**
-- `a`: First vector operand (also provides values for masked-off lanes)
-- `b`: Second vector operand
-- `mask`: Mask controlling which lanes to operate on
-
-**Return Value:** Vector with selective addition applied
-
-**Example:**
-```cpp
-sv_int4 a = sv_set_int(1, 2, 3, 4);
-sv_int4 b = sv_set_int(10, 20, 30, 40);
-sv_mask mask = sv_init_ones(2);      // [T, T, F, F]
-sv_int4 result = sv_int_masked_add(a, b, mask);  // [11, 22, 3, 4]
-```
-
-### sv_int_masked_sub
-```cpp
-sv_int4 sv_int_masked_sub(sv_int4 a, sv_int4 b, sv_mask mask);
-```
-**Description:** Performs subtraction only on lanes where the mask is true.
-
-**Parameters:**
-- `a`: First vector operand
-- `b`: Second vector operand
-- `mask`: Mask controlling which lanes to operate on
-
-**Return Value:** Vector with selective subtraction applied
-
-**Example:**
-```cpp
-sv_int4 result = sv_int_masked_sub(b, a, mask);  // [9, 18, 30, 40]
-```
-
-### sv_int_masked_mul
-```cpp
-sv_int4 sv_int_masked_mul(sv_int4 a, sv_int4 b, sv_mask mask);
-```
-**Description:** Performs multiplication only on lanes where the mask is true.
-
-**Parameters:**
-- `a`: First vector operand
-- `b`: Second vector operand
-- `mask`: Mask controlling which lanes to operate on
-
-**Return Value:** Vector with selective multiplication applied
-
-**Example:**
-```cpp
-sv_int4 result = sv_int_masked_mul(a, b, mask);  // [10, 40, 3, 4]
-```
-
-### sv_float_masked_add
-```cpp
-sv_float4 sv_float_masked_add(sv_float4 a, sv_float4 b, sv_mask mask);
-```
-**Description:** Performs addition only on float lanes where the mask is true.
-
-**Parameters:**
-- `a`: First vector operand
-- `b`: Second vector operand
-- `mask`: Mask controlling which lanes to operate on
-
-**Return Value:** Vector with selective addition applied
-
-**Example:**
-```cpp
-sv_float4 a = sv_set_float(1.0f, 2.0f, 3.0f, 4.0f);
-sv_float4 b = sv_set_float(0.5f, 1.5f, 2.5f, 3.5f);
-sv_mask mask = sv_init_ones(3);      // [T, T, T, F]
-sv_float4 result = sv_float_masked_add(a, b, mask);  // [1.5, 3.5, 5.5, 4.0]
-```
-
-### sv_float_masked_sub
-```cpp
-sv_float4 sv_float_masked_sub(sv_float4 a, sv_float4 b, sv_mask mask);
-```
-**Description:** Performs subtraction only on float lanes where the mask is true.
-
-**Parameters:**
-- `a`: First vector operand
-- `b`: Second vector operand
-- `mask`: Mask controlling which lanes to operate on
-
-**Return Value:** Vector with selective subtraction applied
-
-**Example:**
-```cpp
-sv_float4 result = sv_float_masked_sub(a, b, mask);  // [0.5, 0.5, 0.5, 4.0]
-```
-
-### sv_float_masked_mul
-```cpp
-sv_float4 sv_float_masked_mul(sv_float4 a, sv_float4 b, sv_mask mask);
-```
-**Description:** Performs multiplication only on float lanes where the mask is true.
-
-**Parameters:**
-- `a`: First vector operand
-- `b`: Second vector operand
-- `mask`: Mask controlling which lanes to operate on
-
-**Return Value:** Vector with selective multiplication applied
-
-**Example:**
-```cpp
-sv_float4 result = sv_float_masked_mul(a, b, mask);  // [0.5, 3.0, 7.5, 4.0]
 ```
 
 ## Utility Functions
