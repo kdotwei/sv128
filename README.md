@@ -50,14 +50,24 @@ make uninstall PREFIX=/path/to/your/dir
 
 To use the sv128 library in your own projects:
 
-1. Include the header:
+1. Include the headers:
    ```cpp
    #include <sv128/sv128.h>
+   #include <sv128/sv_logger.h>
    ```
 
-2. When compiling your project, link against the library:
+2. When compiling your project, link against the library and specify the include path.
+
+   Note: On some systems, `/usr/local/include` and `/usr/local/lib` are not in the default search paths, so you must specify them explicitly with the `-I` and `-L` flags.
+
+   For a default installation (in `/usr/local`):
    ```bash
-   g++ your_app.cpp -L/path/to/lib -lsv128 -I/path/to/include -o your_app
+   g++ your_app.cpp -I/usr/local/include -L/usr/local/lib -lsv128 -o your_app
+   ```
+
+   For a custom installation path:
+   ```bash
+   g++ your_app.cpp -I/path/to/include -L/path/to/lib -lsv128 -o your_app
    ```
 
 ## Example
