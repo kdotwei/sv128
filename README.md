@@ -1,27 +1,50 @@
 # sv128: A Simulated Vector Library
 
-A C++ library for simulating 128-bit vector operations and tracking performance metrics.
+A C++ library for simulating vector operations with multiple high-performance implementations using SSE and AVX intrinsics.
 
 ## Features
 
-- Simulated 4-wide vector operations for int and float
+- Multiple implementation backends:
+  - **Scalar**: Portable C++ implementation using for-loops (4-wide vectors)
+  - **SSE**: High-performance SSE4.1 intrinsics implementation (4-wide vectors)
+  - **AVX**: High-performance AVX/AVX2 intrinsics implementation (8-wide vectors)
 - C-style API mimicking SIMD instruction sets (sv_int_add, sv_load_int, etc.)
 - Masking support for conditional operations
 - Built-in performance logger to track vector lane utilization
 - Static library format for easy integration
+- Compile-time implementation selection via make variables
 
 ## How to Build
 
-To build the library and test application:
+The library supports three different implementations that can be selected at compile time:
 
+### Scalar Implementation (Default)
 ```bash
 make
+# or explicitly:
+make IMPL=SCALAR
+```
+This builds the portable C++ implementation using standard for-loops. Compatible with all systems.
+
+### SSE Implementation
+```bash
+make IMPL=SSE
+```
+This builds the SSE4.1 intrinsics implementation for enhanced performance on x86/x64 systems with SSE4.1 support.
+
+### AVX Implementation
+```bash
+make IMPL=AVX
+```
+This builds the AVX/AVX2 intrinsics implementation for maximum performance on modern x86/x64 systems with AVX2 support. Uses 8-wide vectors instead of 4-wide.
+
+### Build Information
+To see the current build configuration:
+```bash
+make info
 ```
 
-This compiles the static library (`libsv128.a`) and the test application (`test_app`).
-
 To clean all build artifacts:
-
 ```bash
 make clean
 ```
@@ -77,8 +100,10 @@ This section provides a brief overview of the sv128 library functions. For a det
 ### Data Types
 
 - `sv_mask`: A vector mask with VECTOR_WIDTH boolean lanes.
-- `sv_int4`: A vector register with VECTOR_WIDTH integer lanes.
-- `sv_float4`: A vector register with VECTOR_WIDTH float lanes.
+- `sv_int4`: A vector register with VECTOR_WIDTH integer lanes (4 for Scalar/SSE, 8 for AVX).
+- `sv_float4`: A vector register with VECTOR_WIDTH float lanes (4 for Scalar/SSE, 8 for AVX).
+
+**Note**: For AVX builds, the library also defines `sv_int8` and `sv_float8` types, but `sv_int4` and `sv_float4` are aliased to these for API compatibility.
 
 ### Memory & Set Operations
 

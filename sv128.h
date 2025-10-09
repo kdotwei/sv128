@@ -3,33 +3,88 @@
 
 #include <iostream>
 
-#define VECTOR_WIDTH 4
+// Conditional includes and vector width definition
+#ifdef _AVX_
+    #include <immintrin.h>
+    #define VECTOR_WIDTH 8
+#elif defined(_SSE_)
+    #include <immintrin.h>
+    #define VECTOR_WIDTH 4
+#else
+    #define VECTOR_WIDTH 4
+#endif
 
-// Mask Type
+// Mask Type - always uses array regardless of implementation
 struct sv_mask {
     bool data[VECTOR_WIDTH];
 };
 
-// Integer Vector Type
-struct sv_int4 {
-    int data[VECTOR_WIDTH];
-};
-
-// Float Vector Type
-struct sv_float4 {
-    float data[VECTOR_WIDTH];
-};
+// Vector Types with conditional intrinsic support
+#ifdef _AVX_
+    // AVX implementation - 8-wide vectors
+    struct sv_int8 {
+        union {
+            int data[8];
+            __m256i avx_data;
+        };
+    };
+    
+    struct sv_float8 {
+        union {
+            float data[8];
+            __m256 avx_data;
+        };
+    };
+    
+    // Type aliases for compatibility
+    typedef sv_int8 sv_int4;
+    typedef sv_float8 sv_float4;
+    
+#elif defined(_SSE_)
+    // SSE implementation - 4-wide vectors
+    struct sv_int4 {
+        union {
+            int data[4];
+            __m128i sse_data;
+        };
+    };
+    
+    struct sv_float4 {
+        union {
+            float data[4];
+            __m128 sse_data;
+        };
+    };
+    
+#else
+    // Scalar implementation - 4-wide vectors
+    struct sv_int4 {
+        int data[4];
+    };
+    
+    struct sv_float4 {
+        float data[4];
+    };
+#endif
 
 // Memory Operations - Integer
 sv_int4 sv_load_int(const int* mem_addr);
 void sv_store_int(int* mem_addr, sv_int4 a);
+#ifdef _AVX_
+sv_int4 sv_set_int(int i0, int i1, int i2, int i3, int i4, int i5, int i6, int i7);
+#else
 sv_int4 sv_set_int(int i0, int i1, int i2, int i3);
+#endif
 sv_int4 sv_set1_int(int val);
 
 // Memory Operations - Float
 sv_float4 sv_load_float(const float* mem_addr);
 void sv_store_float(float* mem_addr, sv_float4 a);
+#ifdef _AVX_
+sv_float4 sv_set_float(float f0, float f1, float f2, float f3, float f4, float f5, float f6, float f7);
+#else
 sv_float4 sv_set_float(float f0, float f1, float f2, float f3);
+#endif
 sv_float4 sv_set1_float(float val);
 
 // Arithmetic Operations - Integer

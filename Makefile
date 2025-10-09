@@ -4,9 +4,28 @@ CXXFLAGS = -std=c++11 -Wall
 # Installation prefix - can be overridden with: make install PREFIX=/custom/path
 PREFIX ?= /usr/local
 
+# Implementation selection: SCALAR (default), SSE, or AVX
+# Usage:
+#   make                 (builds the scalar version)
+#   make IMPL=SSE       (builds the SSE version)
+#   make IMPL=AVX       (builds the AVX version)
+IMPL ?= SCALAR
+
+# Set implementation-specific flags and source files
+ifeq ($(IMPL),SSE)
+    CXXFLAGS += -msse4.1 -D_SSE_
+    SV128_SRC = sv128_sse.cpp
+else ifeq ($(IMPL),AVX)
+    CXXFLAGS += -mavx -mavx2 -D_AVX_
+    SV128_SRC = sv128_avx.cpp
+else
+    # Default to SCALAR implementation
+    SV128_SRC = sv128_scalar.cpp
+endif
+
 # Object files
-sv128.o: sv128.cpp sv128.h sv_logger.h
-	$(CXX) $(CXXFLAGS) -c sv128.cpp
+sv128.o: $(SV128_SRC) sv128.h sv_logger.h
+	$(CXX) $(CXXFLAGS) -c $(SV128_SRC) -o sv128.o
 
 sv_logger.o: sv_logger.cpp sv_logger.h sv128.h
 	$(CXX) $(CXXFLAGS) -c sv_logger.cpp
@@ -30,6 +49,12 @@ all: test_app
 clean:
 	rm -f *.o *.a test_app
 
+# Display current implementation info
+info:
+	@echo "Current implementation: $(IMPL)"
+	@echo "Source file: $(SV128_SRC)"
+	@echo "Compiler flags: $(CXXFLAGS)"
+
 # Install library and headers
 install: libsv128.a
 	mkdir -p $(PREFIX)/lib
@@ -42,4 +67,4 @@ uninstall:
 	rm -f $(PREFIX)/lib/libsv128.a
 	rm -rf $(PREFIX)/include/sv128
 
-.PHONY: all clean install uninstall
+.PHONY: all clean install uninstall info

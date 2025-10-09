@@ -13,8 +13,13 @@ int main() {
     std::cout << "\n--- Integer Vector Operations ---" << std::endl;
     
     // Create some integer vectors
+#ifdef _AVX_
+    sv_int4 int_a = sv_set_int(1, 2, 3, 4, 5, 6, 7, 8);
+    sv_int4 int_b = sv_set_int(9, 10, 11, 12, 13, 14, 15, 16);
+#else
     sv_int4 int_a = sv_set_int(1, 2, 3, 4);
     sv_int4 int_b = sv_set_int(5, 6, 7, 8);
+#endif
     sv_int4 int_ones = sv_set1_int(10);
     
     std::cout << "int_a = " << int_a << std::endl;
@@ -45,8 +50,13 @@ int main() {
     std::cout << "\n--- Float Vector Operations ---" << std::endl;
     
     // Create some float vectors
+#ifdef _AVX_
+    sv_float4 float_a = sv_set_float(1.5f, 2.5f, 3.5f, 4.5f, 5.5f, 6.5f, 7.5f, 8.5f);
+    sv_float4 float_b = sv_set_float(0.5f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f);
+#else
     sv_float4 float_a = sv_set_float(1.5f, 2.5f, 3.5f, 4.5f);
     sv_float4 float_b = sv_set_float(0.5f, 1.0f, 2.0f, 3.0f);
+#endif
     
     std::cout << "float_a = " << float_a << std::endl;
     std::cout << "float_b = " << float_b << std::endl;
@@ -70,8 +80,13 @@ int main() {
     // Memory operations
     std::cout << "\n--- Memory Operations ---" << std::endl;
     
+#ifdef _AVX_
+    int int_array[8] = {10, 20, 30, 40, 50, 60, 70, 80};
+    float float_array[8] = {1.1f, 2.2f, 3.3f, 4.4f, 5.5f, 6.6f, 7.7f, 8.8f};
+#else
     int int_array[4] = {10, 20, 30, 40};
     float float_array[4] = {1.1f, 2.2f, 3.3f, 4.4f};
+#endif
     
     sv_int4 loaded_int = sv_load_int(int_array);
     sv_float4 loaded_float = sv_load_float(float_array);
@@ -80,14 +95,19 @@ int main() {
     std::cout << "Loaded float array: " << loaded_float << std::endl;
     
     // Store back to arrays
+#ifdef _AVX_
+    int result_int[8];
+    float result_float[8];
+#else
     int result_int[4];
     float result_float[4];
+#endif
     
     sv_store_int(result_int, int_sum);
     sv_store_float(result_float, float_sum);
     
     std::cout << "Stored int sum back to array: [" << result_int[0];
-    for (int i = 1; i < 4; i++) {
+    for (int i = 1; i < VECTOR_WIDTH; i++) {
         std::cout << ", " << result_int[i];
     }
     std::cout << "]" << std::endl;
@@ -95,11 +115,20 @@ int main() {
     // Mask operations
     std::cout << "\n--- Mask Operations ---" << std::endl;
     
+#ifdef _AVX_
+    sv_mask mask1 = sv_int_gt(sv_set_int(1, 0, 1, 0, 1, 0, 1, 0), sv_set1_int(0));
+    sv_mask mask2 = sv_int_lt(int_a, sv_set1_int(5));
+#else
     sv_mask mask1 = sv_int_gt(sv_set_int(1, 0, 1, 0), sv_set1_int(0));
     sv_mask mask2 = sv_int_lt(int_a, sv_set1_int(3));
+#endif
     
     std::cout << "mask1 (custom): " << mask1 << std::endl;
+#ifdef _AVX_
+    std::cout << "mask2 (int_a < 5): " << mask2 << std::endl;
+#else
     std::cout << "mask2 (int_a < 3): " << mask2 << std::endl;
+#endif
     
     sv_mask mask_and = sv_mask_and(mask1, mask2);
     sv_mask mask_or = sv_mask_or(mask1, mask2);

@@ -2,6 +2,16 @@
 
 This document provides detailed documentation for all public functions in the sv128 simulated vector library.
 
+## Implementation Variants
+
+The sv128 library supports three different implementations:
+
+- **Scalar**: Portable C++ implementation using for-loops (VECTOR_WIDTH = 4)
+- **SSE**: SSE4.1 intrinsics implementation (VECTOR_WIDTH = 4)  
+- **AVX**: AVX/AVX2 intrinsics implementation (VECTOR_WIDTH = 8)
+
+The implementation is selected at compile time via make variables. All APIs remain the same across implementations, but vector width and performance characteristics differ.
+
 ## Data Types
 
 ### sv_mask
@@ -13,20 +23,76 @@ struct sv_mask {
 A vector mask with VECTOR_WIDTH boolean lanes used for conditional operations. Each lane can be either `true` or `false`, controlling which vector lanes participate in masked operations.
 
 ### sv_int4
+For Scalar and SSE implementations:
 ```cpp
 struct sv_int4 {
-    int data[VECTOR_WIDTH];
+    union {
+        int data[4];
+        __m128i sse_data;  // SSE only
+    };
 };
 ```
-A vector register containing VECTOR_WIDTH integer values. Used for integer vector operations.
+
+For AVX implementation:
+```cpp
+struct sv_int8 {
+    union {
+        int data[8];
+        __m256i avx_data;
+    };
+};
+typedef sv_int8 sv_int4;  // For API compatibility
+```
+
+A vector register containing VECTOR_WIDTH integer values. The union allows access both as a C-style array and as intrinsic types for optimal performance.
 
 ### sv_float4
+For Scalar and SSE implementations:
 ```cpp
 struct sv_float4 {
-    float data[VECTOR_WIDTH];
+    union {
+        float data[4];
+        __m128 sse_data;  // SSE only
+    };
 };
 ```
-A vector register containing VECTOR_WIDTH floating-point values. Used for float vector operations.
+
+For AVX implementation:
+```cpp
+struct sv_float8 {
+    union {
+        float data[8];
+        __m256 avx_data;
+    };
+};
+typedef sv_float8 sv_float4;  // For API compatibility
+```
+
+A vector register containing VECTOR_WIDTH floating-point values. The union allows access both as a C-style array and as intrinsic types for optimal performance.
+
+## Performance Notes
+
+### Implementation Characteristics
+
+- **Scalar**: Portable, works on all systems, uses standard C++ for-loops
+- **SSE**: Requires SSE4.1 support, uses 128-bit vector instructions, 4-wide parallelism
+- **AVX**: Requires AVX2 support, uses 256-bit vector instructions, 8-wide parallelism
+
+### AVX-Specific Considerations
+
+When using the AVX implementation:
+- Vector width is doubled (8 elements instead of 4)
+- Memory operations load/store 8 consecutive elements
+- All arithmetic and comparison operations process 8 elements simultaneously
+- Lane utilization statistics will show up to 8× the instruction count in total lanes
+- The `sv_int8` and `sv_float8` types are available but `sv_int4`/`sv_float4` should be used for API compatibility
+
+### Memory Alignment
+
+For optimal performance with SSE and AVX implementations:
+- Memory should be aligned to 16-byte boundaries for SSE
+- Memory should be aligned to 32-byte boundaries for AVX
+- The library uses unaligned loads/stores for compatibility, but aligned memory will be faster
 
 ## Logger Functions
 
@@ -98,19 +164,31 @@ sv_store_int(result, vec);
 ```
 
 ### sv_set_int
+For Scalar and SSE implementations:
 ```cpp
 sv_int4 sv_set_int(int i0, int i1, int i2, int i3);
 ```
+
+For AVX implementation:
+```cpp
+sv_int4 sv_set_int(int i0, int i1, int i2, int i3, int i4, int i5, int i6, int i7);
+```
+
 **Description:** Creates a vector with explicitly provided values for each lane.
 
 **Parameters:**
-- `i0`, `i1`, `i2`, `i3`: Values for each vector lane
+- `i0`, `i1`, `i2`, `i3`: Values for each vector lane (4-wide implementations)
+- `i4`, `i5`, `i6`, `i7`: Additional values for 8-wide AVX implementation
 
 **Return Value:** Vector with the specified values
 
 **Example:**
 ```cpp
+// Scalar/SSE:
 sv_int4 vec = sv_set_int(10, 20, 30, 40);
+
+// AVX:
+sv_int4 vec = sv_set_int(10, 20, 30, 40, 50, 60, 70, 80);
 ```
 
 ### sv_set1_int
@@ -165,19 +243,31 @@ sv_store_float(result, vec);
 ```
 
 ### sv_set_float
+For Scalar and SSE implementations:
 ```cpp
 sv_float4 sv_set_float(float f0, float f1, float f2, float f3);
 ```
+
+For AVX implementation:
+```cpp
+sv_float4 sv_set_float(float f0, float f1, float f2, float f3, float f4, float f5, float f6, float f7);
+```
+
 **Description:** Creates a float vector with explicitly provided values for each lane.
 
 **Parameters:**
-- `f0`, `f1`, `f2`, `f3`: Values for each vector lane
+- `f0`, `f1`, `f2`, `f3`: Values for each vector lane (4-wide implementations)
+- `f4`, `f5`, `f6`, `f7`: Additional values for 8-wide AVX implementation
 
 **Return Value:** Vector with the specified values
 
 **Example:**
 ```cpp
+// Scalar/SSE:
 sv_float4 vec = sv_set_float(1.0f, 2.0f, 3.0f, 4.0f);
+
+// AVX:
+sv_float4 vec = sv_set_float(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
 ```
 
 ### sv_set1_float
