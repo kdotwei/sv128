@@ -213,6 +213,28 @@ sv_float4 sv_float_sqrt(sv_float4 a) {
     return result;
 }
 
+sv_float4 sv_float_hadd(sv_float4 a) {
+    sv_logger_record_unmasked_op();
+    sv_float4 result;
+    // [a,b,c,d] -> [a+b, a+b, c+d, c+d]
+    result.data[0] = a.data[0] + a.data[1];
+    result.data[1] = a.data[0] + a.data[1];
+    result.data[2] = a.data[2] + a.data[3];
+    result.data[3] = a.data[2] + a.data[3];
+    return result;
+}
+
+sv_float4 sv_float_interleave(sv_float4 a) {
+    sv_logger_record_unmasked_op();
+    sv_float4 result;
+    // [a,b,c,d] -> [a,c,b,d]
+    result.data[0] = a.data[0];
+    result.data[1] = a.data[2];
+    result.data[2] = a.data[1];
+    result.data[3] = a.data[3];
+    return result;
+}
+
 // Comparison Operations - Integer
 sv_mask sv_int_eq(sv_int4 a, sv_int4 b) {
     sv_logger_record_unmasked_op();
@@ -306,6 +328,15 @@ sv_mask sv_float_ge(sv_float4 a, sv_float4 b) {
 }
 
 // Mask Operations
+sv_mask sv_init_ones(int first_n) {
+    sv_logger_record_unmasked_op();
+    sv_mask result;
+    for (int i = 0; i < VECTOR_WIDTH; i++) {
+        result.data[i] = (i < first_n);
+    }
+    return result;
+}
+
 sv_mask sv_mask_and(sv_mask a, sv_mask b) {
     sv_logger_record_unmasked_op();
     sv_mask result;
@@ -351,6 +382,17 @@ bool sv_mask_any(sv_mask a) {
         }
     }
     return false;
+}
+
+int sv_cntbits(sv_mask a) {
+    sv_logger_record_unmasked_op();
+    int count = 0;
+    for (int i = 0; i < VECTOR_WIDTH; i++) {
+        if (a.data[i]) {
+            count++;
+        }
+    }
+    return count;
 }
 
 // Masked Arithmetic Operations - Integer

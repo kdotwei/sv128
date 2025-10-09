@@ -54,6 +54,8 @@ sv_float4 sv_float_min(sv_float4 a, sv_float4 b);
 sv_float4 sv_float_max(sv_float4 a, sv_float4 b);
 sv_float4 sv_float_abs(sv_float4 a);
 sv_float4 sv_float_sqrt(sv_float4 a);
+sv_float4 sv_float_hadd(sv_float4 a);
+sv_float4 sv_float_interleave(sv_float4 a);
 
 // Comparison Operations - Integer
 sv_mask sv_int_eq(sv_int4 a, sv_int4 b);
@@ -70,11 +72,13 @@ sv_mask sv_float_gt(sv_float4 a, sv_float4 b);
 sv_mask sv_float_ge(sv_float4 a, sv_float4 b);
 
 // Mask Operations
+sv_mask sv_init_ones(int first_n);
 sv_mask sv_mask_and(sv_mask a, sv_mask b);
 sv_mask sv_mask_or(sv_mask a, sv_mask b);
 sv_mask sv_mask_not(sv_mask a);
 bool sv_mask_all(sv_mask a);
 bool sv_mask_any(sv_mask a);
+int sv_cntbits(sv_mask a);
 
 // Masked Arithmetic Operations - Integer
 sv_int4 sv_int_masked_add(sv_int4 a, sv_int4 b, sv_mask mask);
