@@ -60,6 +60,38 @@ void sv_logger_print_stats();
 sv_logger_print_stats();  // Display performance summary
 ```
 
+### sv_logger_get_total_instructions
+```cpp
+long long sv_logger_get_total_instructions();
+```
+**Description:** Returns the total number of vector instructions recorded since the last `sv_logger_init()` call.
+
+**Parameters:** None
+
+**Return Value:** The total instruction count as a `long long`.
+
+**Example:**
+```cpp
+long long instructions = sv_logger_get_total_instructions();
+std::cout << "Instructions executed: " << instructions << std::endl;
+```
+
+### sv_logger_get_utilized_lanes
+```cpp
+long long sv_logger_get_utilized_lanes();
+```
+**Description:** Returns the total number of vector lanes that were active (not masked off) across all recorded instructions since the last `sv_logger_init()` call.
+
+**Parameters:** None
+
+**Return Value:** The total count of utilized lanes as a `long long`.
+
+**Example:**
+```cpp
+long long active_lanes = sv_logger_get_utilized_lanes();
+std::cout << "Active lanes processed: " << active_lanes << std::endl;
+```
+
 ## Memory & Set Operations
 
 ### sv_load_int

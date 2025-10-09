@@ -39,3 +39,12 @@ void sv_logger_print_stats() {
     std::cout << "Lane utilization rate: " << utilization_rate << "%" << std::endl;
     std::cout << "============================================" << std::endl;
 }
+
+// Implementation for getter functions
+long long sv_logger_get_total_instructions() {
+    return total_instructions;
+}
+
+long long sv_logger_get_utilized_lanes() {
+    return utilized_lanes;
+}

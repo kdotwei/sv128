@@ -140,6 +140,8 @@ This section provides a brief overview of the sv128 library functions. For a det
 
 - `void sv_logger_init()`: Resets all performance counters.
 - `void sv_logger_print_stats()`: Prints the final performance statistics.
+- `long long sv_logger_get_total_instructions()`: Gets the total number of instructions recorded.
+- `long long sv_logger_get_utilized_lanes()`: Gets the total count of active vector lanes.
 
 ## License
 

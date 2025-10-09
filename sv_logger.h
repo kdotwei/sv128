@@ -9,4 +9,8 @@ void sv_logger_record_op(sv_mask mask); // Records a masked operation, counts ut
 void sv_logger_record_unmasked_op(); // Records an operation where all lanes are utilized
 void sv_logger_print_stats(); // Prints a summary of the collected statistics
 
+// Getter functions to access performance counters
+long long sv_logger_get_total_instructions();
+long long sv_logger_get_utilized_lanes();
+
 #endif // SV_LOGGER_H

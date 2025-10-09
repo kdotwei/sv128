@@ -4,8 +4,17 @@
 
 int main() {
     // Initialize the logger
-    sv_logger_init();
+    sv_logger_init();    // Masked float multiply: " << masked_float_mul << std::endl;
     
+    // Demonstrate the new getter functions
+    std::cout << "\n--- Manual Performance Counter Check ---" << std::endl;
+    long long total_instr = sv_logger_get_total_instructions();
+    long long utilized_lanes = sv_logger_get_utilized_lanes();
+    std::cout << "Retrieved via getters - Total Instructions: " << total_instr << std::endl;
+    std::cout << "Retrieved via getters - Utilized Lanes: " << utilized_lanes << std::endl;
+    
+    // Print performance statistics
+    sv_logger_print_stats(); 
     std::cout << "SV128 Library Demo - Simulated Vector 128-bit Operations" << std::endl;
     std::cout << "=========================================================" << std::endl;
     
