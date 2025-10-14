@@ -2,6 +2,8 @@
 *.o
 *.a
 test_app
+run_tests
+run_test
 
 # IDE files
 .vscode/

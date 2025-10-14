@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++11 -Wall
+CXXFLAGS = -std=c++17 -Wall
 
 # Installation prefix - can be overridden with: make install PREFIX=/custom/path
 PREFIX ?= /usr/local
@@ -23,12 +23,20 @@ main.o: main.cpp sv128.h sv_logger.h
 test_app: main.o libsv128.a
 	$(CXX) $(CXXFLAGS) -o test_app main.o libsv128.a
 
+# Google Test integration
+sv128_test.o: sv128_test.cc sv128.h sv_logger.h
+	$(CXX) $(CXXFLAGS) -c sv128_test.cc
+
+# Test executable with gtest
+run_tests: sv128_test.o libsv128.a
+	$(CXX) $(CXXFLAGS) -o run_tests sv128_test.o libsv128.a -lgtest -lgtest_main -lpthread
+
 # Build all
-all: test_app
+all: test_app run_tests
 
 # Clean build artifacts
 clean:
-	rm -f *.o *.a test_app
+	rm -f *.o *.a test_app run_tests
 
 # Install library and headers
 install: libsv128.a
