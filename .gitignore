@@ -17,3 +17,21 @@ test_app
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Autotools generated files
+/configure
+/Makefile.in
+/Makefile
+/autom4te.cache/
+/aclocal.m4
+/config.h
+/config.h.in
+/config.log
+/config.status
+/stamp-h1
+/.deps/
+/ar-lib
+/compile
+/depcomp
+/install-sh
+/missing
