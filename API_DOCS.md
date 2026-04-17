@@ -49,7 +49,7 @@ sv_logger_init();  // Reset performance counters
 ```cpp
 void sv_logger_print_stats();
 ```
-**Description:** Prints a summary of collected performance statistics including total instructions, utilized lanes, and lane utilization rate.
+**Description:** Prints a summary of collected performance statistics including total instructions, utilized lanes, lane utilization rate, and total clock cost.
 
 **Parameters:** None
 
@@ -90,6 +90,24 @@ long long sv_logger_get_utilized_lanes();
 ```cpp
 long long active_lanes = sv_logger_get_utilized_lanes();
 std::cout << "Active lanes processed: " << active_lanes << std::endl;
+```
+
+### sv_logger_get_total_clock_cost
+```cpp
+long long sv_logger_get_total_clock_cost();
+```
+**Description:** Returns the total simulated clock cycles accumulated across all recorded operations since the last `sv_logger_init()` call. Each sv128 operation contributes a fixed latency based on Intel SSE/AVX-512 reference values (e.g. float add/mul = 4 cycles, float div = 14 cycles, int add = 1 cycle).
+
+**Parameters:** None
+
+**Return Value:** The total clock cost as a `long long`.
+
+**Example:**
+```cpp
+long long cycles = sv_logger_get_total_clock_cost();
+long long utilized = sv_logger_get_utilized_lanes();
+double throughput = (double)utilized / (double)cycles;  // lanes per cycle
+std::cout << "Throughput: " << throughput << " lanes/cycle" << std::endl;
 ```
 
 ## Memory & Set Operations
