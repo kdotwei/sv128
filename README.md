@@ -10,7 +10,6 @@ A C++ library for simulating 128-bit vector operations and tracking performance 
 - Built-in performance logger tracking:
   - Vector lane utilization rate
   - **Total clock cost** — weighted by per-instruction latency modelled after Intel SSE/AVX-512 reference values
-- `SimFloat` scalar wrapper class for exposing the performance cost of *not* vectorizing
 - Static library format for easy integration
 
 ## How to Build
@@ -157,28 +156,6 @@ Each `sv128` API call internally records a clock cost modelled after Intel SSE/A
 | Shuffle (hadd / interleave) | 5 |
 | Float div, float sqrt | 14 |
 | Integer div (software) | 20 |
-
-### SimFloat — Scalar Cost Simulation
-
-`SimFloat` is a drop-in `float` wrapper defined in `sim_float.h`. It intercepts standard C++ arithmetic operators and records each operation into the same logger as a **scalar (1-lane)** event with the matching clock cost.
-
-```cpp
-#include <sv128/sim_float.h>
-
-SimFloat a = 3.0f, b = 2.0f;
-SimFloat c = a / b;  // records scalar_op(14 cycles, 1 lane utilized)
-```
-
-Because each `SimFloat` operation only contributes 1 utilized lane (vs. 4 for a vector instruction), students who bypass `sv128` and use plain scalar loops will see a dramatically higher clock cost and lower utilization rate in the stats output — making the SIMD advantage immediately visible.
-
-Clock costs for `SimFloat` match the vector equivalents:
-
-| Operator | Clock Cost |
-|---|---|
-| `+`, `-` | 4 |
-| `*` | 4 |
-| `/` | 14 |
-| `==`, `!=`, `<`, `<=`, `>`, `>=` | 1 |
 
 ## License
 
