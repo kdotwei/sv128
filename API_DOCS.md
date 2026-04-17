@@ -28,6 +28,29 @@ struct sv_float4 {
 ```
 A vector register containing VECTOR_WIDTH floating-point values. Used for float vector operations.
 
+## Clock Cost Reference
+
+All sv128 operations record a simulated latency based on Intel SSE/AVX-512 reference values. The clock cost determines how the total cycle count grows as your code runs — using efficient vectorisation keeps the cycles-per-result low.
+
+| Category | Operation | Clock cost |
+|---|---|---|
+| Memory (load/store) | `sv_load_int`, `sv_store_int`, `sv_load_float`, `sv_store_float` | 4 cycles |
+| Set / broadcast | `sv_set_int`, `sv_set_float` | 1 cycle |
+| Set / broadcast (masked) | `sv_set1_int`, `sv_set1_float` | 1 cycle |
+| Integer add / sub / abs | `sv_int_add`, `sv_int_sub`, `sv_int_abs` | 1 cycle |
+| Integer min / max | `sv_int_min`, `sv_int_max` | 1 cycle |
+| Integer multiply | `sv_int_mul` | 3 cycles |
+| Integer divide | `sv_int_div` | 20 cycles (software-emulated) |
+| Float add / sub / mul | `sv_float_add`, `sv_float_sub`, `sv_float_mul` | 4 cycles |
+| Float abs / min / max | `sv_float_abs`, `sv_float_min`, `sv_float_max` | 1 cycle |
+| Float divide / sqrt | `sv_float_div`, `sv_float_sqrt` | 14 cycles |
+| Shuffle / hadd | `sv_float_hadd`, `sv_float_interleave` | 5 cycles |
+| Comparisons (int & float) | `sv_int_eq/lt/le/gt/ge`, `sv_float_eq/lt/le/gt/ge` | 1 cycle |
+| Mask ops | `sv_init_ones`, `sv_mask_and/or/not`, `sv_mask_all/any`, `sv_cntbits` | 1 cycle |
+| Mask init | `sv_mask_all_true` | 0 cycles |
+
+> **Masked vs. unmasked:** Most arithmetic and memory operations are *masked* — only active lanes consume throughput. Comparison and mask operations are *unmasked* — they always operate on all lanes.
+
 ## Logger Functions
 
 ### sv_logger_init
@@ -125,6 +148,8 @@ sv_int4 sv_load_int(sv_int4 passthru, const int* mem_addr, sv_mask mask);
 
 **Return Value:** Vector containing the loaded integer values for active lanes and passthru values for inactive lanes
 
+**Clock cost:** 4 cycles (masked — active lanes only)
+
 **Example:**
 ```cpp
 int array[4] = {1, 2, 3, 4};
@@ -146,6 +171,8 @@ void sv_store_int(int* mem_addr, sv_int4 a, sv_mask mask);
 
 **Return Value:** None
 
+**Clock cost:** 4 cycles (masked — active lanes only)
+
 **Example:**
 ```cpp
 int result[4] = {10, 20, 30, 40};  // Initial values
@@ -164,6 +191,8 @@ sv_int4 sv_set_int(int i0, int i1, int i2, int i3);
 
 **Return Value:** Vector with the specified values
 
+**Clock cost:** 1 cycle (unmasked — all lanes)
+
 **Example:**
 ```cpp
 sv_int4 vec = sv_set_int(10, 20, 30, 40);
@@ -181,6 +210,8 @@ sv_int4 sv_set1_int(sv_int4 passthru, int val, sv_mask mask);
 - `mask`: Mask controlling which lanes to operate on
 
 **Return Value:** Vector with active lanes set to the specified value and inactive lanes from passthru
+
+**Clock cost:** 1 cycle (masked — active lanes only)
 
 **Example:**
 ```cpp
@@ -201,6 +232,8 @@ sv_float4 sv_load_float(sv_float4 passthru, const float* mem_addr, sv_mask mask)
 - `mask`: Mask controlling which lanes to operate on
 
 **Return Value:** Vector containing the loaded float values for active lanes and passthru values for inactive lanes
+
+**Clock cost:** 4 cycles (masked — active lanes only)
 
 **Example:**
 ```cpp
@@ -223,6 +256,8 @@ void sv_store_float(float* mem_addr, sv_float4 a, sv_mask mask);
 
 **Return Value:** None
 
+**Clock cost:** 4 cycles (masked — active lanes only)
+
 **Example:**
 ```cpp
 float result[4] = {10.0f, 20.0f, 30.0f, 40.0f};  // Initial values
@@ -241,6 +276,8 @@ sv_float4 sv_set_float(float f0, float f1, float f2, float f3);
 
 **Return Value:** Vector with the specified values
 
+**Clock cost:** 1 cycle (unmasked — all lanes)
+
 **Example:**
 ```cpp
 sv_float4 vec = sv_set_float(1.0f, 2.0f, 3.0f, 4.0f);
@@ -258,6 +295,8 @@ sv_float4 sv_set1_float(sv_float4 passthru, float val, sv_mask mask);
 - `mask`: Mask controlling which lanes to operate on
 
 **Return Value:** Vector with active lanes set to the specified value and inactive lanes from passthru
+
+**Clock cost:** 1 cycle (masked — active lanes only)
 
 **Example:**
 ```cpp
@@ -281,6 +320,8 @@ sv_int4 sv_int_add(sv_int4 a, sv_int4 b, sv_mask mask);
 
 **Return Value:** Vector containing the element-wise sum for active lanes and values from 'a' for inactive lanes
 
+**Clock cost:** 1 cycle (masked — active lanes only)
+
 **Example:**
 ```cpp
 sv_int4 a = sv_set_int(1, 2, 3, 4);
@@ -302,6 +343,8 @@ sv_int4 sv_int_sub(sv_int4 a, sv_int4 b, sv_mask mask);
 
 **Return Value:** Vector containing the element-wise difference for active lanes and values from 'a' for inactive lanes
 
+**Clock cost:** 1 cycle (masked — active lanes only)
+
 **Example:**
 ```cpp
 sv_int4 result = sv_int_sub(b, a, mask);  // [4, 4, 7, 8]
@@ -319,6 +362,8 @@ sv_int4 sv_int_mul(sv_int4 a, sv_int4 b, sv_mask mask);
 - `mask`: Mask controlling which lanes to operate on
 
 **Return Value:** Vector containing the element-wise product for active lanes and values from 'a' for inactive lanes
+
+**Clock cost:** 3 cycles (masked — active lanes only)
 
 **Example:**
 ```cpp
@@ -338,6 +383,8 @@ sv_int4 sv_int_div(sv_int4 a, sv_int4 b, sv_mask mask);
 
 **Return Value:** Vector containing the element-wise quotient for active lanes and values from 'a' for inactive lanes
 
+**Clock cost:** 20 cycles (masked — software-emulated integer division)
+
 **Example:**
 ```cpp
 sv_int4 result = sv_int_div(b, a, mask);  // [5, 3, 7, 8]
@@ -354,6 +401,8 @@ sv_int4 sv_int_abs(sv_int4 a, sv_mask mask);
 - `mask`: Mask controlling which lanes to operate on
 
 **Return Value:** Vector containing the absolute values for active lanes and original values from 'a' for inactive lanes
+
+**Clock cost:** 1 cycle (masked — active lanes only)
 
 **Example:**
 ```cpp
@@ -374,6 +423,8 @@ sv_float4 sv_float_add(sv_float4 a, sv_float4 b, sv_mask mask);
 - `mask`: Mask controlling which lanes to operate on
 
 **Return Value:** Vector containing the element-wise sum for active lanes and values from 'a' for inactive lanes
+
+**Clock cost:** 4 cycles (masked — active lanes only)
 
 **Example:**
 ```cpp
@@ -396,6 +447,8 @@ sv_float4 sv_float_sub(sv_float4 a, sv_float4 b, sv_mask mask);
 
 **Return Value:** Vector containing the element-wise difference for active lanes and values from 'a' for inactive lanes
 
+**Clock cost:** 4 cycles (masked — active lanes only)
+
 **Example:**
 ```cpp
 sv_float4 result = sv_float_sub(a, b, mask);  // [1.0, 1.5, 1.5, 4.5]
@@ -413,6 +466,8 @@ sv_float4 sv_float_mul(sv_float4 a, sv_float4 b, sv_mask mask);
 - `mask`: Mask controlling which lanes to operate on
 
 **Return Value:** Vector containing the element-wise product for active lanes and values from 'a' for inactive lanes
+
+**Clock cost:** 4 cycles (masked — active lanes only)
 
 **Example:**
 ```cpp
@@ -432,6 +487,8 @@ sv_float4 sv_float_div(sv_float4 a, sv_float4 b, sv_mask mask);
 
 **Return Value:** Vector containing the element-wise quotient for active lanes and values from 'a' for inactive lanes
 
+**Clock cost:** 14 cycles (masked — active lanes only)
+
 **Example:**
 ```cpp
 sv_float4 result = sv_float_div(a, b, mask);  // [3.0, 2.5, 1.75, 4.5]
@@ -448,6 +505,8 @@ sv_float4 sv_float_abs(sv_float4 a, sv_mask mask);
 - `mask`: Mask controlling which lanes to operate on
 
 **Return Value:** Vector containing the absolute values for active lanes and original values from 'a' for inactive lanes
+
+**Clock cost:** 1 cycle (masked — active lanes only)
 
 **Example:**
 ```cpp
@@ -467,6 +526,8 @@ sv_float4 sv_float_sqrt(sv_float4 a, sv_mask mask);
 - `mask`: Mask controlling which lanes to operate on
 
 **Return Value:** Vector containing the square roots for active lanes and original values from 'a' for inactive lanes
+
+**Clock cost:** 14 cycles (masked — active lanes only)
 
 **Example:**
 ```cpp
@@ -490,6 +551,8 @@ sv_int4 sv_int_min(sv_int4 a, sv_int4 b, sv_mask mask);
 
 **Return Value:** Vector containing the element-wise minimum for active lanes and values from 'a' for inactive lanes
 
+**Clock cost:** 1 cycle (masked — active lanes only)
+
 **Example:**
 ```cpp
 sv_int4 a = sv_set_int(5, 2, 8, 1);
@@ -511,6 +574,8 @@ sv_int4 sv_int_max(sv_int4 a, sv_int4 b, sv_mask mask);
 
 **Return Value:** Vector containing the element-wise maximum for active lanes and values from 'a' for inactive lanes
 
+**Clock cost:** 1 cycle (masked — active lanes only)
+
 **Example:**
 ```cpp
 sv_int4 result = sv_int_max(a, b, mask);  // [5, 6, 8, 1]
@@ -528,6 +593,8 @@ sv_float4 sv_float_min(sv_float4 a, sv_float4 b, sv_mask mask);
 - `mask`: Mask controlling which lanes to operate on
 
 **Return Value:** Vector containing the element-wise minimum for active lanes and values from 'a' for inactive lanes
+
+**Clock cost:** 1 cycle (masked — active lanes only)
 
 **Example:**
 ```cpp
@@ -550,6 +617,8 @@ sv_float4 sv_float_max(sv_float4 a, sv_float4 b, sv_mask mask);
 
 **Return Value:** Vector containing the element-wise maximum for active lanes and values from 'a' for inactive lanes
 
+**Clock cost:** 1 cycle (masked — active lanes only)
+
 **Example:**
 ```cpp
 sv_float4 result = sv_float_max(a, b, mask);  // [5.5, 6.8, 8.3, 1.7]
@@ -566,6 +635,8 @@ sv_float4 sv_float_hadd(sv_float4 a, sv_mask mask);
 - `mask`: Mask controlling which lanes to operate on
 
 **Return Value:** Vector with horizontal sums for active lanes and original values from 'a' for inactive lanes
+
+**Clock cost:** 5 cycles (masked — active lanes only)
 
 **Example:**
 ```cpp
@@ -585,6 +656,8 @@ sv_float4 sv_float_interleave(sv_float4 a, sv_mask mask);
 - `mask`: Mask controlling which lanes to operate on
 
 **Return Value:** Vector with interleaved elements for active lanes and original values from 'a' for inactive lanes
+
+**Clock cost:** 5 cycles (masked — active lanes only)
 
 **Example:**
 ```cpp
@@ -607,6 +680,8 @@ sv_mask sv_int_eq(sv_int4 a, sv_int4 b);
 
 **Return Value:** Mask indicating which lanes are equal
 
+**Clock cost:** 1 cycle (unmasked — all lanes)
+
 **Example:**
 ```cpp
 sv_int4 a = sv_set_int(1, 2, 3, 4);
@@ -626,6 +701,8 @@ sv_mask sv_int_lt(sv_int4 a, sv_int4 b);
 
 **Return Value:** Mask indicating which lanes of `a` are less than `b`
 
+**Clock cost:** 1 cycle (unmasked — all lanes)
+
 **Example:**
 ```cpp
 sv_mask result = sv_int_lt(a, b);  // [F, F, F, T]
@@ -643,6 +720,8 @@ sv_mask sv_int_gt(sv_int4 a, sv_int4 b);
 
 **Return Value:** Mask indicating which lanes of `a` are greater than `b`
 
+**Clock cost:** 1 cycle (unmasked — all lanes)
+
 **Example:**
 ```cpp
 sv_mask result = sv_int_gt(a, b);  // [F, T, F, F]
@@ -659,6 +738,8 @@ sv_mask sv_int_le(sv_int4 a, sv_int4 b);
 - `b`: Second vector operand
 
 **Return Value:** Mask indicating which lanes of `a` are less than or equal to `b`
+
+**Clock cost:** 1 cycle (unmasked — all lanes)
 
 **Example:**
 ```cpp
@@ -679,6 +760,8 @@ sv_mask sv_int_ge(sv_int4 a, sv_int4 b);
 
 **Return Value:** Mask indicating which lanes of `a` are greater than or equal to `b`
 
+**Clock cost:** 1 cycle (unmasked — all lanes)
+
 **Example:**
 ```cpp
 sv_mask result = sv_int_ge(a, b);  // [T, T, T, F]
@@ -695,6 +778,8 @@ sv_mask sv_float_eq(sv_float4 a, sv_float4 b);
 - `b`: Second vector operand
 
 **Return Value:** Mask indicating which lanes are equal
+
+**Clock cost:** 1 cycle (unmasked — all lanes)
 
 **Example:**
 ```cpp
@@ -715,6 +800,8 @@ sv_mask sv_float_lt(sv_float4 a, sv_float4 b);
 
 **Return Value:** Mask indicating which lanes of `a` are less than `b`
 
+**Clock cost:** 1 cycle (unmasked — all lanes)
+
 **Example:**
 ```cpp
 sv_mask result = sv_float_lt(a, b);  // [F, F, F, T]
@@ -732,6 +819,8 @@ sv_mask sv_float_gt(sv_float4 a, sv_float4 b);
 
 **Return Value:** Mask indicating which lanes of `a` are greater than `b`
 
+**Clock cost:** 1 cycle (unmasked — all lanes)
+
 **Example:**
 ```cpp
 sv_mask result = sv_float_gt(a, b);  // [F, T, F, F]
@@ -748,6 +837,8 @@ sv_mask sv_float_le(sv_float4 a, sv_float4 b);
 - `b`: Second vector operand
 
 **Return Value:** Mask indicating which lanes of `a` are less than or equal to `b`
+
+**Clock cost:** 1 cycle (unmasked — all lanes)
 
 **Example:**
 ```cpp
@@ -768,6 +859,8 @@ sv_mask sv_float_ge(sv_float4 a, sv_float4 b);
 
 **Return Value:** Mask indicating which lanes of `a` are greater than or equal to `b`
 
+**Clock cost:** 1 cycle (unmasked — all lanes)
+
 **Example:**
 ```cpp
 sv_mask result = sv_float_ge(a, b);  // [T, T, T, F]
@@ -785,6 +878,8 @@ sv_mask sv_mask_all_true();
 
 **Return Value:** Mask with all lanes set to true
 
+**Clock cost:** 0 cycles (no counter recorded)
+
 **Example:**
 ```cpp
 sv_mask mask = sv_mask_all_true();  // [T, T, T, T]
@@ -801,6 +896,8 @@ sv_mask sv_init_ones(int first_n);
 
 **Return Value:** Mask with the specified pattern
 
+**Clock cost:** 1 cycle (unmasked — all lanes)
+
 **Example:**
 ```cpp
 sv_mask mask = sv_init_ones(2);  // [T, T, F, F]
@@ -816,6 +913,8 @@ sv_mask sv_mask_not(sv_mask a);
 - `a`: Input mask
 
 **Return Value:** Mask with inverted values
+
+**Clock cost:** 1 cycle (unmasked — all lanes)
 
 **Example:**
 ```cpp
@@ -834,6 +933,8 @@ sv_mask sv_mask_or(sv_mask a, sv_mask b);
 - `b`: Second mask operand
 
 **Return Value:** Mask containing the OR results
+
+**Clock cost:** 1 cycle (unmasked — all lanes)
 
 **Example:**
 ```cpp
@@ -854,6 +955,8 @@ sv_mask sv_mask_and(sv_mask a, sv_mask b);
 
 **Return Value:** Mask containing the AND results
 
+**Clock cost:** 1 cycle (unmasked — all lanes)
+
 **Example:**
 ```cpp
 sv_mask result = sv_mask_and(a, b);  // [T, T, F, F]
@@ -869,6 +972,8 @@ bool sv_mask_all(sv_mask a);
 - `a`: Input mask
 
 **Return Value:** True if all lanes are true, false otherwise
+
+**Clock cost:** 1 cycle (unmasked — all lanes)
 
 **Example:**
 ```cpp
@@ -889,6 +994,8 @@ bool sv_mask_any(sv_mask a);
 
 **Return Value:** True if at least one lane is true, false otherwise
 
+**Clock cost:** 1 cycle (unmasked — all lanes)
+
 **Example:**
 ```cpp
 sv_mask mask1 = sv_init_ones(1);        // [T, F, F, F]
@@ -907,6 +1014,8 @@ int sv_cntbits(sv_mask a);
 - `a`: Input mask
 
 **Return Value:** Number of true lanes
+
+**Clock cost:** 1 cycle (unmasked — all lanes)
 
 **Example:**
 ```cpp
