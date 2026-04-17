@@ -118,9 +118,9 @@ This section provides a brief overview of the sv128 library functions. For a det
 
 ### Vector Comparison
 
-- `sv_mask sv_int_gt(sv_int4 a, sv_int4 b)`: Element-wise greater-than comparison.
-- `sv_mask sv_int_lt(sv_int4 a, sv_int4 b)`: Element-wise less-than comparison.
-- `sv_mask sv_int_eq(sv_int4 a, sv_int4 b)`: Element-wise equality comparison.
+- `sv_mask sv_int_gt(sv_int4 a, sv_int4 b, sv_mask mask)`: Element-wise greater-than comparison.
+- `sv_mask sv_int_lt(sv_int4 a, sv_int4 b, sv_mask mask)`: Element-wise less-than comparison.
+- `sv_mask sv_int_eq(sv_int4 a, sv_int4 b, sv_mask mask)`: Element-wise equality comparison.
 
 (Equivalent functions exist for float type.)
 

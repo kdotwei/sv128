@@ -44,8 +44,8 @@ int main() {
     std::cout << "int_a * int_b = " << int_prod << std::endl;
     
     // Comparison operations
-    sv_mask int_eq_mask = sv_int_eq(int_a, int_b);
-    sv_mask int_lt_mask = sv_int_lt(int_a, int_b);
+    sv_mask int_eq_mask = sv_int_eq(int_a, int_b, all_true);
+    sv_mask int_lt_mask = sv_int_lt(int_a, int_b, all_true);
     
     std::cout << "int_a == int_b: " << int_eq_mask << std::endl;
     std::cout << "int_a < int_b:  " << int_lt_mask << std::endl;
@@ -111,8 +111,8 @@ int main() {
     std::cout << "\n--- Mask Operations ---" << std::endl;
     
     sv_int4 dummy_set1;
-    sv_mask mask1 = sv_int_gt(sv_set_int(1, 0, 1, 0), sv_set1_int(dummy_set1, 0, all_true));
-    sv_mask mask2 = sv_int_lt(int_a, sv_set1_int(dummy_set1, 3, all_true));
+    sv_mask mask1 = sv_int_gt(sv_set_int(1, 0, 1, 0), sv_set1_int(dummy_set1, 0, all_true), all_true);
+    sv_mask mask2 = sv_int_lt(int_a, sv_set1_int(dummy_set1, 3, all_true), all_true);
     
     std::cout << "mask1 (custom): " << mask1 << std::endl;
     std::cout << "mask2 (int_a < 3): " << mask2 << std::endl;

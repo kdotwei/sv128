@@ -47,7 +47,7 @@ All sv128 operations record a simulated latency based on Intel SSE/AVX-512 refer
 | Float divide | `sv_float_div` | 11 cycles |
 | Float sqrt | `sv_float_sqrt` | 14 cycles |
 | Shuffle / hadd | `sv_float_hadd`, `sv_float_interleave` | 5 cycles |
-| Comparisons (int & float) | `sv_int_eq/lt/le/gt/ge`, `sv_float_eq/lt/le/gt/ge` | 3 cycles |
+| Comparisons (int & float) | `sv_int_eq/lt/le/gt/ge`, `sv_float_eq/lt/le/gt/ge` | 3 cycles (masked) |
 | Mask ops | `sv_init_ones`, `sv_mask_and/or/not`, `sv_mask_all/any`, `sv_cntbits` | 1 cycle |
 | Mask init | `sv_mask_all_true` | 0 cycles |
 
@@ -672,200 +672,210 @@ sv_float4 result = sv_float_interleave(input, mask);  // [1.0, 3.0, 2.0, 4.0]
 
 ### sv_int_eq
 ```cpp
-sv_mask sv_int_eq(sv_int4 a, sv_int4 b);
+sv_mask sv_int_eq(sv_int4 a, sv_int4 b, sv_mask mask)
 ```
 **Description:** Performs element-wise equality comparison between two integer vectors.
 
 **Parameters:**
 - `a`: First vector operand
 - `b`: Second vector operand
+- `mask`: Mask controlling which lanes to compare; inactive lanes output `false` (zeroing)
 
 **Return Value:** Mask indicating which lanes are equal
 
-**Latency:** 3 cycles (unmasked — all lanes)
+**Latency:** 3 cycles (masked — active lanes only)
 
 **Example:**
 ```cpp
 sv_int4 a = sv_set_int(1, 2, 3, 4);
 sv_int4 b = sv_set_int(1, 0, 3, 5);
-sv_mask result = sv_int_eq(a, b);  // [T, F, T, F]
+sv_mask result = sv_int_eq(a, b, all_true);  // [T, F, T, F]
 ```
 
 ### sv_int_lt
 ```cpp
-sv_mask sv_int_lt(sv_int4 a, sv_int4 b);
+sv_mask sv_int_lt(sv_int4 a, sv_int4 b, sv_mask mask)
 ```
 **Description:** Performs element-wise less-than comparison between two integer vectors.
 
 **Parameters:**
 - `a`: First vector operand
 - `b`: Second vector operand
+- `mask`: Mask controlling which lanes to compare; inactive lanes output `false` (zeroing)
 
 **Return Value:** Mask indicating which lanes of `a` are less than `b`
 
-**Latency:** 3 cycles (unmasked — all lanes)
+**Latency:** 3 cycles (masked — active lanes only)
 
 **Example:**
 ```cpp
-sv_mask result = sv_int_lt(a, b);  // [F, F, F, T]
+sv_mask result = sv_int_lt(a, b, all_true);  // [F, F, F, T]
 ```
 
 ### sv_int_gt
 ```cpp
-sv_mask sv_int_gt(sv_int4 a, sv_int4 b);
+sv_mask sv_int_gt(sv_int4 a, sv_int4 b, sv_mask mask)
 ```
 **Description:** Performs element-wise greater-than comparison between two integer vectors.
 
 **Parameters:**
 - `a`: First vector operand
 - `b`: Second vector operand
+- `mask`: Mask controlling which lanes to compare; inactive lanes output `false` (zeroing)
 
 **Return Value:** Mask indicating which lanes of `a` are greater than `b`
 
-**Latency:** 3 cycles (unmasked — all lanes)
+**Latency:** 3 cycles (masked — active lanes only)
 
 **Example:**
 ```cpp
-sv_mask result = sv_int_gt(a, b);  // [F, T, F, F]
+sv_mask result = sv_int_gt(a, b, all_true);  // [F, T, F, F]
 ```
 
 ### sv_int_le
 ```cpp
-sv_mask sv_int_le(sv_int4 a, sv_int4 b);
+sv_mask sv_int_le(sv_int4 a, sv_int4 b, sv_mask mask)
 ```
 **Description:** Performs element-wise less-than-or-equal comparison between two integer vectors.
 
 **Parameters:**
 - `a`: First vector operand
 - `b`: Second vector operand
+- `mask`: Mask controlling which lanes to compare; inactive lanes output `false` (zeroing)
 
 **Return Value:** Mask indicating which lanes of `a` are less than or equal to `b`
 
-**Latency:** 3 cycles (unmasked — all lanes)
+**Latency:** 3 cycles (masked — active lanes only)
 
 **Example:**
 ```cpp
 sv_int4 a = sv_set_int(1, 2, 3, 4);
 sv_int4 b = sv_set_int(1, 0, 3, 5);
-sv_mask result = sv_int_le(a, b);  // [T, F, T, T]
+sv_mask result = sv_int_le(a, b, all_true);  // [T, F, T, T]
 ```
 
 ### sv_int_ge
 ```cpp
-sv_mask sv_int_ge(sv_int4 a, sv_int4 b);
+sv_mask sv_int_ge(sv_int4 a, sv_int4 b, sv_mask mask)
 ```
 **Description:** Performs element-wise greater-than-or-equal comparison between two integer vectors.
 
 **Parameters:**
 - `a`: First vector operand
 - `b`: Second vector operand
+- `mask`: Mask controlling which lanes to compare; inactive lanes output `false` (zeroing)
 
 **Return Value:** Mask indicating which lanes of `a` are greater than or equal to `b`
 
-**Latency:** 3 cycles (unmasked — all lanes)
+**Latency:** 3 cycles (masked — active lanes only)
 
 **Example:**
 ```cpp
-sv_mask result = sv_int_ge(a, b);  // [T, T, T, F]
+sv_mask result = sv_int_ge(a, b, all_true);  // [T, T, T, F]
 ```
 
 ### sv_float_eq
 ```cpp
-sv_mask sv_float_eq(sv_float4 a, sv_float4 b);
+sv_mask sv_float_eq(sv_float4 a, sv_float4 b, sv_mask mask)
 ```
 **Description:** Performs element-wise equality comparison between two float vectors.
 
 **Parameters:**
 - `a`: First vector operand
 - `b`: Second vector operand
+- `mask`: Mask controlling which lanes to compare; inactive lanes output `false` (zeroing)
 
 **Return Value:** Mask indicating which lanes are equal
 
-**Latency:** 3 cycles (unmasked — all lanes)
+**Latency:** 3 cycles (masked — active lanes only)
 
 **Example:**
 ```cpp
 sv_float4 a = sv_set_float(1.0f, 2.0f, 3.0f, 4.0f);
 sv_float4 b = sv_set_float(1.0f, 0.0f, 3.0f, 5.0f);
-sv_mask result = sv_float_eq(a, b);  // [T, F, T, F]
+sv_mask result = sv_float_eq(a, b, all_true);  // [T, F, T, F]
 ```
 
 ### sv_float_lt
 ```cpp
-sv_mask sv_float_lt(sv_float4 a, sv_float4 b);
+sv_mask sv_float_lt(sv_float4 a, sv_float4 b, sv_mask mask)
 ```
 **Description:** Performs element-wise less-than comparison between two float vectors.
 
 **Parameters:**
 - `a`: First vector operand
 - `b`: Second vector operand
+- `mask`: Mask controlling which lanes to compare; inactive lanes output `false` (zeroing)
 
 **Return Value:** Mask indicating which lanes of `a` are less than `b`
 
-**Latency:** 3 cycles (unmasked — all lanes)
+**Latency:** 3 cycles (masked — active lanes only)
 
 **Example:**
 ```cpp
-sv_mask result = sv_float_lt(a, b);  // [F, F, F, T]
+sv_mask result = sv_float_lt(a, b, all_true);  // [F, F, F, T]
 ```
 
 ### sv_float_gt
 ```cpp
-sv_mask sv_float_gt(sv_float4 a, sv_float4 b);
+sv_mask sv_float_gt(sv_float4 a, sv_float4 b, sv_mask mask)
 ```
 **Description:** Performs element-wise greater-than comparison between two float vectors.
 
 **Parameters:**
 - `a`: First vector operand
 - `b`: Second vector operand
+- `mask`: Mask controlling which lanes to compare; inactive lanes output `false` (zeroing)
 
 **Return Value:** Mask indicating which lanes of `a` are greater than `b`
 
-**Latency:** 3 cycles (unmasked — all lanes)
+**Latency:** 3 cycles (masked — active lanes only)
 
 **Example:**
 ```cpp
-sv_mask result = sv_float_gt(a, b);  // [F, T, F, F]
+sv_mask result = sv_float_gt(a, b, all_true);  // [F, T, F, F]
 ```
 
 ### sv_float_le
 ```cpp
-sv_mask sv_float_le(sv_float4 a, sv_float4 b);
+sv_mask sv_float_le(sv_float4 a, sv_float4 b, sv_mask mask)
 ```
 **Description:** Performs element-wise less-than-or-equal comparison between two float vectors.
 
 **Parameters:**
 - `a`: First vector operand
 - `b`: Second vector operand
+- `mask`: Mask controlling which lanes to compare; inactive lanes output `false` (zeroing)
 
 **Return Value:** Mask indicating which lanes of `a` are less than or equal to `b`
 
-**Latency:** 3 cycles (unmasked — all lanes)
+**Latency:** 3 cycles (masked — active lanes only)
 
 **Example:**
 ```cpp
 sv_float4 a = sv_set_float(1.0f, 2.0f, 3.0f, 4.0f);
 sv_float4 b = sv_set_float(1.0f, 0.0f, 3.0f, 5.0f);
-sv_mask result = sv_float_le(a, b);  // [T, F, T, T]
+sv_mask result = sv_float_le(a, b, all_true);  // [T, F, T, T]
 ```
 
 ### sv_float_ge
 ```cpp
-sv_mask sv_float_ge(sv_float4 a, sv_float4 b);
+sv_mask sv_float_ge(sv_float4 a, sv_float4 b, sv_mask mask)
 ```
 **Description:** Performs element-wise greater-than-or-equal comparison between two float vectors.
 
 **Parameters:**
 - `a`: First vector operand
 - `b`: Second vector operand
+- `mask`: Mask controlling which lanes to compare; inactive lanes output `false` (zeroing)
 
 **Return Value:** Mask indicating which lanes of `a` are greater than or equal to `b`
 
-**Latency:** 3 cycles (unmasked — all lanes)
+**Latency:** 3 cycles (masked — active lanes only)
 
 **Example:**
 ```cpp
-sv_mask result = sv_float_ge(a, b);  // [T, T, T, F]
+sv_mask result = sv_float_ge(a, b, all_true);  // [T, T, T, F]
 ```
 
 ## Mask Operations

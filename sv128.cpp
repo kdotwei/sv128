@@ -284,93 +284,93 @@ sv_float4 sv_float_interleave(sv_float4 a, sv_mask mask) {
 }
 
 // Comparison Operations - Integer
-sv_mask sv_int_eq(sv_int4 a, sv_int4 b) {
-    sv_logger_record_unmasked_op(3);
+sv_mask sv_int_eq(sv_int4 a, sv_int4 b, sv_mask mask) {
+    sv_logger_record_op(mask, 3);
     sv_mask result;
     for (int i = 0; i < VECTOR_WIDTH; i++) {
-        result.data[i] = (a.data[i] == b.data[i]);
+        result.data[i] = mask.data[i] ? (a.data[i] == b.data[i]) : false;
     }
     return result;
 }
 
-sv_mask sv_int_lt(sv_int4 a, sv_int4 b) {
-    sv_logger_record_unmasked_op(3);
+sv_mask sv_int_lt(sv_int4 a, sv_int4 b, sv_mask mask) {
+    sv_logger_record_op(mask, 3);
     sv_mask result;
     for (int i = 0; i < VECTOR_WIDTH; i++) {
-        result.data[i] = (a.data[i] < b.data[i]);
+        result.data[i] = mask.data[i] ? (a.data[i] < b.data[i]) : false;
     }
     return result;
 }
 
-sv_mask sv_int_le(sv_int4 a, sv_int4 b) {
-    sv_logger_record_unmasked_op(3);
+sv_mask sv_int_le(sv_int4 a, sv_int4 b, sv_mask mask) {
+    sv_logger_record_op(mask, 3);
     sv_mask result;
     for (int i = 0; i < VECTOR_WIDTH; i++) {
-        result.data[i] = (a.data[i] <= b.data[i]);
+        result.data[i] = mask.data[i] ? (a.data[i] <= b.data[i]) : false;
     }
     return result;
 }
 
-sv_mask sv_int_gt(sv_int4 a, sv_int4 b) {
-    sv_logger_record_unmasked_op(3);
+sv_mask sv_int_gt(sv_int4 a, sv_int4 b, sv_mask mask) {
+    sv_logger_record_op(mask, 3);
     sv_mask result;
     for (int i = 0; i < VECTOR_WIDTH; i++) {
-        result.data[i] = (a.data[i] > b.data[i]);
+        result.data[i] = mask.data[i] ? (a.data[i] > b.data[i]) : false;
     }
     return result;
 }
 
-sv_mask sv_int_ge(sv_int4 a, sv_int4 b) {
-    sv_logger_record_unmasked_op(3);
+sv_mask sv_int_ge(sv_int4 a, sv_int4 b, sv_mask mask) {
+    sv_logger_record_op(mask, 3);
     sv_mask result;
     for (int i = 0; i < VECTOR_WIDTH; i++) {
-        result.data[i] = (a.data[i] >= b.data[i]);
+        result.data[i] = mask.data[i] ? (a.data[i] >= b.data[i]) : false;
     }
     return result;
 }
 
 // Comparison Operations - Float
-sv_mask sv_float_eq(sv_float4 a, sv_float4 b) {
-    sv_logger_record_unmasked_op(3);
+sv_mask sv_float_eq(sv_float4 a, sv_float4 b, sv_mask mask) {
+    sv_logger_record_op(mask, 3);
     sv_mask result;
     for (int i = 0; i < VECTOR_WIDTH; i++) {
-        result.data[i] = (a.data[i] == b.data[i]);
+        result.data[i] = mask.data[i] ? (a.data[i] == b.data[i]) : false;
     }
     return result;
 }
 
-sv_mask sv_float_lt(sv_float4 a, sv_float4 b) {
-    sv_logger_record_unmasked_op(3);
+sv_mask sv_float_lt(sv_float4 a, sv_float4 b, sv_mask mask) {
+    sv_logger_record_op(mask, 3);
     sv_mask result;
     for (int i = 0; i < VECTOR_WIDTH; i++) {
-        result.data[i] = (a.data[i] < b.data[i]);
+        result.data[i] = mask.data[i] ? (a.data[i] < b.data[i]) : false;
     }
     return result;
 }
 
-sv_mask sv_float_le(sv_float4 a, sv_float4 b) {
-    sv_logger_record_unmasked_op(3);
+sv_mask sv_float_le(sv_float4 a, sv_float4 b, sv_mask mask) {
+    sv_logger_record_op(mask, 3);
     sv_mask result;
     for (int i = 0; i < VECTOR_WIDTH; i++) {
-        result.data[i] = (a.data[i] <= b.data[i]);
+        result.data[i] = mask.data[i] ? (a.data[i] <= b.data[i]) : false;
     }
     return result;
 }
 
-sv_mask sv_float_gt(sv_float4 a, sv_float4 b) {
-    sv_logger_record_unmasked_op(3);
+sv_mask sv_float_gt(sv_float4 a, sv_float4 b, sv_mask mask) {
+    sv_logger_record_op(mask, 3);
     sv_mask result;
     for (int i = 0; i < VECTOR_WIDTH; i++) {
-        result.data[i] = (a.data[i] > b.data[i]);
+        result.data[i] = mask.data[i] ? (a.data[i] > b.data[i]) : false;
     }
     return result;
 }
 
-sv_mask sv_float_ge(sv_float4 a, sv_float4 b) {
-    sv_logger_record_unmasked_op(3);
+sv_mask sv_float_ge(sv_float4 a, sv_float4 b, sv_mask mask) {
+    sv_logger_record_op(mask, 3);
     sv_mask result;
     for (int i = 0; i < VECTOR_WIDTH; i++) {
-        result.data[i] = (a.data[i] >= b.data[i]);
+        result.data[i] = mask.data[i] ? (a.data[i] >= b.data[i]) : false;
     }
     return result;
 }
