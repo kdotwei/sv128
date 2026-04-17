@@ -150,11 +150,13 @@ Each `sv128` API call internally records a clock cost modelled after Intel SSE/A
 
 | Operation | Clock Cost |
 |---|---|
-| Integer add / sub, compare, min/max/abs, mask ops | 1 |
-| Integer multiply | 3 |
-| Float add / sub / mul, memory load/store (L1 hit) | 4 |
+| Integer add / sub / abs, min/max, set (explicit), mask ops | 1 |
+| Integer multiply, broadcast (set1), vector compare | 3 |
+| Float add / sub / mul, memory store (L1 hit) | 4 |
 | Shuffle (hadd / interleave) | 5 |
-| Float div, float sqrt | 14 |
+| Memory load (L1 hit) | 7 |
+| Float div | 11 |
+| Float sqrt | 14 |
 | Integer div (software) | 20 |
 
 ## License

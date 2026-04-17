@@ -4,7 +4,7 @@
 
 // Memory Operations - Integer
 sv_int4 sv_load_int(sv_int4 passthru, const int* mem_addr, sv_mask mask) {
-    sv_logger_record_op(mask, 4);
+    sv_logger_record_op(mask, 7);
     sv_int4 result = passthru;
     for (int i = 0; i < VECTOR_WIDTH; i++) {
         if (mask.data[i]) {
@@ -34,7 +34,7 @@ sv_int4 sv_set_int(int i0, int i1, int i2, int i3) {
 }
 
 sv_int4 sv_set1_int(sv_int4 passthru, int val, sv_mask mask) {
-    sv_logger_record_op(mask, 1);
+    sv_logger_record_op(mask, 3);
     sv_int4 result = passthru;
     for (int i = 0; i < VECTOR_WIDTH; i++) {
         if (mask.data[i]) {
@@ -46,7 +46,7 @@ sv_int4 sv_set1_int(sv_int4 passthru, int val, sv_mask mask) {
 
 // Memory Operations - Float
 sv_float4 sv_load_float(sv_float4 passthru, const float* mem_addr, sv_mask mask) {
-    sv_logger_record_op(mask, 4);
+    sv_logger_record_op(mask, 7);
     sv_float4 result = passthru;
     for (int i = 0; i < VECTOR_WIDTH; i++) {
         if (mask.data[i]) {
@@ -76,7 +76,7 @@ sv_float4 sv_set_float(float f0, float f1, float f2, float f3) {
 }
 
 sv_float4 sv_set1_float(sv_float4 passthru, float val, sv_mask mask) {
-    sv_logger_record_op(mask, 1);
+    sv_logger_record_op(mask, 3);
     sv_float4 result = passthru;
     for (int i = 0; i < VECTOR_WIDTH; i++) {
         if (mask.data[i]) {
@@ -166,7 +166,7 @@ sv_float4 sv_float_mul(sv_float4 a, sv_float4 b, sv_mask mask) {
 }
 
 sv_float4 sv_float_div(sv_float4 a, sv_float4 b, sv_mask mask) {
-    sv_logger_record_op(mask, 14);
+    sv_logger_record_op(mask, 11);
     sv_float4 result = a;
     for (int i = 0; i < VECTOR_WIDTH; i++) {
         if (mask.data[i]) {
@@ -285,7 +285,7 @@ sv_float4 sv_float_interleave(sv_float4 a, sv_mask mask) {
 
 // Comparison Operations - Integer
 sv_mask sv_int_eq(sv_int4 a, sv_int4 b) {
-    sv_logger_record_unmasked_op(1);
+    sv_logger_record_unmasked_op(3);
     sv_mask result;
     for (int i = 0; i < VECTOR_WIDTH; i++) {
         result.data[i] = (a.data[i] == b.data[i]);
@@ -294,7 +294,7 @@ sv_mask sv_int_eq(sv_int4 a, sv_int4 b) {
 }
 
 sv_mask sv_int_lt(sv_int4 a, sv_int4 b) {
-    sv_logger_record_unmasked_op(1);
+    sv_logger_record_unmasked_op(3);
     sv_mask result;
     for (int i = 0; i < VECTOR_WIDTH; i++) {
         result.data[i] = (a.data[i] < b.data[i]);
@@ -303,7 +303,7 @@ sv_mask sv_int_lt(sv_int4 a, sv_int4 b) {
 }
 
 sv_mask sv_int_le(sv_int4 a, sv_int4 b) {
-    sv_logger_record_unmasked_op(1);
+    sv_logger_record_unmasked_op(3);
     sv_mask result;
     for (int i = 0; i < VECTOR_WIDTH; i++) {
         result.data[i] = (a.data[i] <= b.data[i]);
@@ -312,7 +312,7 @@ sv_mask sv_int_le(sv_int4 a, sv_int4 b) {
 }
 
 sv_mask sv_int_gt(sv_int4 a, sv_int4 b) {
-    sv_logger_record_unmasked_op(1);
+    sv_logger_record_unmasked_op(3);
     sv_mask result;
     for (int i = 0; i < VECTOR_WIDTH; i++) {
         result.data[i] = (a.data[i] > b.data[i]);
@@ -321,7 +321,7 @@ sv_mask sv_int_gt(sv_int4 a, sv_int4 b) {
 }
 
 sv_mask sv_int_ge(sv_int4 a, sv_int4 b) {
-    sv_logger_record_unmasked_op(1);
+    sv_logger_record_unmasked_op(3);
     sv_mask result;
     for (int i = 0; i < VECTOR_WIDTH; i++) {
         result.data[i] = (a.data[i] >= b.data[i]);
@@ -331,7 +331,7 @@ sv_mask sv_int_ge(sv_int4 a, sv_int4 b) {
 
 // Comparison Operations - Float
 sv_mask sv_float_eq(sv_float4 a, sv_float4 b) {
-    sv_logger_record_unmasked_op(1);
+    sv_logger_record_unmasked_op(3);
     sv_mask result;
     for (int i = 0; i < VECTOR_WIDTH; i++) {
         result.data[i] = (a.data[i] == b.data[i]);
@@ -340,7 +340,7 @@ sv_mask sv_float_eq(sv_float4 a, sv_float4 b) {
 }
 
 sv_mask sv_float_lt(sv_float4 a, sv_float4 b) {
-    sv_logger_record_unmasked_op(1);
+    sv_logger_record_unmasked_op(3);
     sv_mask result;
     for (int i = 0; i < VECTOR_WIDTH; i++) {
         result.data[i] = (a.data[i] < b.data[i]);
@@ -349,7 +349,7 @@ sv_mask sv_float_lt(sv_float4 a, sv_float4 b) {
 }
 
 sv_mask sv_float_le(sv_float4 a, sv_float4 b) {
-    sv_logger_record_unmasked_op(1);
+    sv_logger_record_unmasked_op(3);
     sv_mask result;
     for (int i = 0; i < VECTOR_WIDTH; i++) {
         result.data[i] = (a.data[i] <= b.data[i]);
@@ -358,7 +358,7 @@ sv_mask sv_float_le(sv_float4 a, sv_float4 b) {
 }
 
 sv_mask sv_float_gt(sv_float4 a, sv_float4 b) {
-    sv_logger_record_unmasked_op(1);
+    sv_logger_record_unmasked_op(3);
     sv_mask result;
     for (int i = 0; i < VECTOR_WIDTH; i++) {
         result.data[i] = (a.data[i] > b.data[i]);
@@ -367,7 +367,7 @@ sv_mask sv_float_gt(sv_float4 a, sv_float4 b) {
 }
 
 sv_mask sv_float_ge(sv_float4 a, sv_float4 b) {
-    sv_logger_record_unmasked_op(1);
+    sv_logger_record_unmasked_op(3);
     sv_mask result;
     for (int i = 0; i < VECTOR_WIDTH; i++) {
         result.data[i] = (a.data[i] >= b.data[i]);
