@@ -9,7 +9,7 @@ A C++ library for simulating 128-bit vector operations and tracking performance 
 - Masking support for conditional operations
 - Built-in performance logger tracking:
   - Vector lane utilization rate
-  - **Total clock cost** — weighted by per-instruction latency modelled after Intel SSE/AVX-512 reference values
+  - **Total latency** — weighted by per-instruction latency modelled after Intel SSE/AVX-512 reference values
 - Static library format for easy integration
 
 ## How to Build
@@ -141,14 +141,14 @@ This section provides a brief overview of the sv128 library functions. For a det
 ### Logger Functions
 
 - `void sv_logger_init()`: Resets all performance counters.
-- `void sv_logger_print_stats()`: Prints the final performance statistics, including total clock cost.
+- `void sv_logger_print_stats()`: Prints the final performance statistics, including total latency.
 - `long long sv_logger_get_total_instructions()`: Gets the total number of instructions recorded.
 - `long long sv_logger_get_utilized_lanes()`: Gets the total count of active vector lanes.
-- `long long sv_logger_get_total_clock_cost()`: Gets the cumulative simulated clock cost across all recorded operations.
+- `long long sv_logger_get_total_latency()`: Gets the cumulative simulated latency (in cycles) across all recorded operations.
 
-Each `sv128` API call internally records a clock cost modelled after Intel SSE/AVX-512 latency data:
+Each `sv128` API call internally records an instruction latency modelled after Intel SSE/AVX-512 data:
 
-| Operation | Clock Cost |
+| Operation | Latency |
 |---|---|
 | Integer add / sub / abs, min/max, set (explicit), mask ops | 1 |
 | Integer multiply, broadcast (set1), vector compare | 3 |

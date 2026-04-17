@@ -4,19 +4,19 @@
 // Static global variables to store the counters
 static long long total_instructions = 0;
 static long long utilized_lanes = 0;
-static long long total_clock_cost = 0;
+static long long total_latency = 0;
 
 // Resets all performance counters
 void sv_logger_init() {
     total_instructions = 0;
     utilized_lanes = 0;
-    total_clock_cost = 0;
+    total_latency = 0;
 }
 
 // Records a masked vector operation
-void sv_logger_record_op(sv_mask mask, int clock_cost) {
+void sv_logger_record_op(sv_mask mask, int latency) {
     total_instructions++;
-    total_clock_cost += clock_cost;
+    total_latency += latency;
     for (int i = 0; i < VECTOR_WIDTH; i++) {
         if (mask.data[i]) {
             utilized_lanes++;
@@ -25,17 +25,17 @@ void sv_logger_record_op(sv_mask mask, int clock_cost) {
 }
 
 // Records a full-width vector operation (all lanes active)
-void sv_logger_record_unmasked_op(int clock_cost) {
+void sv_logger_record_unmasked_op(int latency) {
     total_instructions++;
     utilized_lanes += VECTOR_WIDTH;
-    total_clock_cost += clock_cost;
+    total_latency += latency;
 }
 
 // Records a scalar (SimFloat) operation — 1 lane utilized
-void sv_logger_record_scalar_op(int clock_cost) {
+void sv_logger_record_scalar_op(int latency) {
     total_instructions++;
     utilized_lanes += 1;
-    total_clock_cost += clock_cost;
+    total_latency += latency;
 }
 
 // Prints a summary of the collected statistics
@@ -48,7 +48,7 @@ void sv_logger_print_stats() {
     std::cout << "Total lanes:           " << total_lanes << std::endl;
     std::cout << "Utilized lanes:        " << utilized_lanes << std::endl;
     std::cout << "Lane utilization rate: " << utilization_rate << "%" << std::endl;
-    std::cout << "Total clock cost:      " << total_clock_cost << " cycles" << std::endl;
+    std::cout << "Total latency:         " << total_latency << " cycles" << std::endl;
     std::cout << "============================================" << std::endl;
 }
 
@@ -61,6 +61,6 @@ long long sv_logger_get_utilized_lanes() {
     return utilized_lanes;
 }
 
-long long sv_logger_get_total_clock_cost() {
-    return total_clock_cost;
+long long sv_logger_get_total_latency() {
+    return total_latency;
 }
