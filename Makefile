@@ -4,6 +4,9 @@ CXXFLAGS = -std=c++11 -Wall
 # Installation prefix - can be overridden with: make install PREFIX=/custom/path
 PREFIX ?= /usr/local
 
+# Default target
+.DEFAULT_GOAL := all
+
 # Object files
 sv128.o: sv128.cpp sv128.h sv_logger.h
 	$(CXX) $(CXXFLAGS) -c sv128.cpp
