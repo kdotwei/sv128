@@ -5,9 +5,12 @@ A C++ library for simulating 128-bit vector operations and tracking performance 
 ## Features
 
 - Simulated 4-wide vector operations for int and float
-- C-style API mimicking SIMD instruction sets (sv_int_add, sv_load_int, etc.)
+- C-style API mimicking SIMD instruction sets (`sv_int_add`, `sv_load_int`, etc.)
 - Masking support for conditional operations
-- Built-in performance logger to track vector lane utilization
+- Built-in performance logger tracking:
+  - Vector lane utilization rate
+  - **Total clock cost** — weighted by per-instruction latency modelled after Intel SSE/AVX-512 reference values
+- `SimFloat` scalar wrapper class for exposing the performance cost of *not* vectorizing
 - Static library format for easy integration
 
 ## How to Build
@@ -139,9 +142,43 @@ This section provides a brief overview of the sv128 library functions. For a det
 ### Logger Functions
 
 - `void sv_logger_init()`: Resets all performance counters.
-- `void sv_logger_print_stats()`: Prints the final performance statistics.
+- `void sv_logger_print_stats()`: Prints the final performance statistics, including total clock cost.
 - `long long sv_logger_get_total_instructions()`: Gets the total number of instructions recorded.
 - `long long sv_logger_get_utilized_lanes()`: Gets the total count of active vector lanes.
+- `long long sv_logger_get_total_clock_cost()`: Gets the cumulative simulated clock cost across all recorded operations.
+
+Each `sv128` API call internally records a clock cost modelled after Intel SSE/AVX-512 latency data:
+
+| Operation | Clock Cost |
+|---|---|
+| Integer add / sub, compare, min/max/abs, mask ops | 1 |
+| Integer multiply | 3 |
+| Float add / sub / mul, memory load/store (L1 hit) | 4 |
+| Shuffle (hadd / interleave) | 5 |
+| Float div, float sqrt | 14 |
+| Integer div (software) | 20 |
+
+### SimFloat — Scalar Cost Simulation
+
+`SimFloat` is a drop-in `float` wrapper defined in `sim_float.h`. It intercepts standard C++ arithmetic operators and records each operation into the same logger as a **scalar (1-lane)** event with the matching clock cost.
+
+```cpp
+#include <sv128/sim_float.h>
+
+SimFloat a = 3.0f, b = 2.0f;
+SimFloat c = a / b;  // records scalar_op(14 cycles, 1 lane utilized)
+```
+
+Because each `SimFloat` operation only contributes 1 utilized lane (vs. 4 for a vector instruction), students who bypass `sv128` and use plain scalar loops will see a dramatically higher clock cost and lower utilization rate in the stats output — making the SIMD advantage immediately visible.
+
+Clock costs for `SimFloat` match the vector equivalents:
+
+| Operator | Clock Cost |
+|---|---|
+| `+`, `-` | 4 |
+| `*` | 4 |
+| `/` | 14 |
+| `==`, `!=`, `<`, `<=`, `>`, `>=` | 1 |
 
 ## License
 
@@ -155,3 +192,4 @@ This project's structure and code were also bootstrapped with the assistance of 
 
 - Google's Gemini 2.5 Pro
 - Anthropic's Claude 3 Sonnet via Copilot
+- Anthropic's Claude Sonnet 4.6 via Copilot
